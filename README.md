@@ -2,6 +2,10 @@
 
 Not to be confused with "GenAI", Gen**API** generates an Open API schema file and input validators from TypeScript code.
 
+[![CI](https://github.com/NachoToast/GenAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/NachoToast/GenAPI/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/NachoToast/GenAPI/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/NachoToast/GenAPI/actions/workflows/codeql-analysis.yml)
+[![codecov](https://codecov.io/gh/NachoToast/GenAPI/graph/badge.svg?token=MISGHLEMYW)](https://codecov.io/gh/NachoToast/GenAPI)
+
 ### Table of Contents <!-- omit in toc -->
 
 - [Technologies](#technologies)
