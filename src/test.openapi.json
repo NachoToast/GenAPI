@@ -1,0 +1,316 @@
+{
+    "$schema": "../.github/openapi.schema.json",
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Test Generated Schema",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/duplicate": {
+            "get": {
+                "operationId": "duplicateEndpoint",
+                "responses": {
+                    "200": {
+                        "description": "My endpoint description wow.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string",
+                                    "description": "A string alias.",
+                                    "example": "678",
+                                    "minLength": 8
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\duplicate.ts#14:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/duplicate.ts"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "integer",
+                                "enum": [
+                                    939
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/simple/string": {
+            "get": {
+                "operationId": "simpleStringEndpoint",
+                "responses": {
+                    "200": {
+                        "description": "Simple string endpoint.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\basicExample.ts#6:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string",
+                                "enum": [
+                                    "some-literal"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/simple/number": {
+            "get": {
+                "operationId": "simpleNumberEndpoint",
+                "responses": {
+                    "200": {
+                        "description": "Simple number endpoint.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\basicExample.ts#12:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "integer",
+                                "enum": [
+                                    1730
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/simple/alias": {
+            "get": {
+                "operationId": "simpleAliasEndpoint",
+                "responses": {
+                    "200": {
+                        "description": "Simple alias endpoint.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\basicExample.ts#22:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string",
+                                "enum": [
+                                    ""
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/some/path": {
+            "post": {
+                "operationId": "endpointOne",
+                "responses": {
+                    "200": {
+                        "description": "Basic endpoint using **SharedInterfaceA** and **SharedInterfaceB**.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SharedInterfaceB"
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\basicExample.ts#32:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SharedInterfaceA"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/:id": {
+            "get": {
+                "operationId": "endpointTwo",
+                "responses": {
+                    "200": {
+                        "description": "Another endpoint, this one uses **IsolatedInterfaceA**.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "foo"
+                                    ],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "foo": {
+                                            "type": "string",
+                                            "enum": [
+                                                "bar"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\basicExample.ts#42:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
+                }
+            }
+        },
+        "/three": {
+            "post": {
+                "operationId": "endpointThree",
+                "responses": {
+                    "200": {
+                        "description": "Endpoint which returns it's own custom response, denoted in JsDoc.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\basicExample.ts#54:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/four": {
+            "post": {
+                "operationId": "endpointFour",
+                "responses": {
+                    "200": {
+                        "description": "Endpoint four.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SharedInterfaceA"
+                                }
+                            }
+                        }
+                    }
+                },
+                "externalDocs": {
+                    "url": "examples\\basic\\basicExample.ts#65:1",
+                    "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
+                },
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SharedInterfaceA"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "SharedInterfaceA": {
+                "type": "object",
+                "description": "Description for SharedInterfaceA.",
+                "required": [
+                    "fieldA",
+                    "fieldB"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "fieldA": {
+                        "type": "string"
+                    },
+                    "fieldB": {
+                        "type": "integer",
+                        "enum": [
+                            7
+                        ]
+                    }
+                }
+            },
+            "SharedInterfaceB": {
+                "type": "object",
+                "description": "Description for SharedInterfaceB, which is next to **SharedInterfaceA**.",
+                "required": [
+                    "fieldA",
+                    "fieldD"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "fieldA": {
+                        "$ref": "#/components/schemas/SharedInterfaceA"
+                    },
+                    "fieldD": {
+                        "$ref": "#/components/schemas/SharedInterfaceB"
+                    }
+                }
+            }
+        }
+    }
+}

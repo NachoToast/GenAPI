@@ -1,0 +1,10 @@
+{
+    "$schema": ".github/openapi.schema.json",
+    "components": {
+        "schemas": {
+            "hui": {
+                
+            }
+        }
+    }
+}
