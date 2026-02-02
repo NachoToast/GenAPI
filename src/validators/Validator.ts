@@ -11,7 +11,7 @@ export type ValidationInputType =
 export abstract class Validator {
     protected constructor() {}
 
-    public abstract validate(input: unknown): unknown;
+    public abstract validate(input: unknown): void;
 
     protected static getNounFor(type: ValidationInputType): string {
         // biome-ignore lint/nursery/noUnnecessaryConditions: Biome is not smart

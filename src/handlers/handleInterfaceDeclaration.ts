@@ -25,7 +25,9 @@ export function handleInterfaceDeclaration(
             continue;
         }
 
-        root.addProperty(member.name.text, value);
+        const isRequired = member.questionToken === undefined;
+
+        root.addProperty(member.name.text, value, isRequired);
     }
 
     return root;
