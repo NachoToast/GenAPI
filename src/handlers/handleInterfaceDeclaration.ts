@@ -2,6 +2,7 @@ import { type InterfaceDeclaration, isIdentifier, isPropertySignature } from "ty
 import { ParserError } from "@/errors/ParserError";
 import { InterfaceDeclarationSchema } from "@/schemas/object/InterfaceDeclarationSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
+import { handleNode } from "./handleNode";
 
 export function handleInterfaceDeclaration(
     node: InterfaceDeclaration,
@@ -18,7 +19,7 @@ export function handleInterfaceDeclaration(
             throw new ParserError(member, "Expected all keys of interface to be identifiers");
         }
 
-        const value = args.handleNode(member, args);
+        const value = handleNode(member, args);
 
         if (value === null) {
             continue;

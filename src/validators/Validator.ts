@@ -9,6 +9,8 @@ export type ValidationInputType =
     | "function";
 
 export abstract class Validator {
+    protected constructor() {}
+
     public abstract validate(input: unknown): unknown;
 
     protected static getNounFor(type: ValidationInputType): string {

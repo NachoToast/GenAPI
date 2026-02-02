@@ -12,6 +12,7 @@ import type { SchemaObject } from "@/schemas/SchemaObject";
 import { AliasedStringKeywordSchema } from "@/schemas/string/AliasedStringKeywordSchema";
 import { AliasedStringLiteralSchema } from "@/schemas/string/AliasedStringLiteralSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
+import { handleNode } from "./handleNode";
 
 export function handleTypeAliasDeclaration(
     node: TypeAliasDeclaration,
@@ -41,5 +42,5 @@ export function handleTypeAliasDeclaration(
         return new AliasedNumberLiteralSchema(node, args.refDb, Number(value.text));
     }
 
-    return args.handleNode(value, args);
+    return handleNode(value, args);
 }

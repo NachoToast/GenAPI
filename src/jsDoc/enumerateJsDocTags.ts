@@ -1,6 +1,6 @@
 import type { JSDocTag, Node } from "typescript";
 
-/** Recursively enumerates through the JSDoc tags of a node. */
+/** Enumerates through all the JSDoc tags of the given {@link node}. */
 export function* enumerateJsDocTags(node: Node): Generator<JSDocTag> {
     if (node.jsDoc === undefined) return;
 

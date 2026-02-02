@@ -1,6 +1,6 @@
 import type { Node } from "typescript";
 import type { ReferenceDatabase } from "@/classes/ReferenceDatabase";
-import { NumberValidator } from "@/validators/Number";
+import { NumberValidator } from "@/validators/NumberValidator";
 import type { Validator } from "@/validators/Validator";
 import { SchemaObject } from "../SchemaObject";
 

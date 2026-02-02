@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/style/useNamingConvention: matching spec names */
+/** biome-ignore-all lint/style/noNamespace: organisation purposes */
 
 /**
  * Relevant parts of the OpenAPI JSON Specification v3.0.0x in (imperfect) TypeScript form.
@@ -15,7 +16,6 @@
  *
  * @see {@link https://spec.openapis.org/oas/3.0/schema/2024-10-18}
  */
-// biome-ignore lint/style/noNamespace: sometimes it be like it be
 export namespace OAS {
     export interface RootDocument {
         $schema?: string;

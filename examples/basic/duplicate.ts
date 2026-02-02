@@ -5,7 +5,7 @@ type NumberAlias = 939;
 /**
  * A string alias.
  *
- * @minLength 8
+ * @minLength 3
  * @example "678"
  */
 type StringAlias = string;

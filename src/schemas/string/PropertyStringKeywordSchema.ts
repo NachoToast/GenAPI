@@ -1,8 +1,8 @@
 import type { PropertySignature } from "typescript";
 import type { ReferenceDatabase } from "@/classes/ReferenceDatabase";
-import { getJsDocTag } from "@/helpers/jsDoc/getJsDocTag";
+import { getJsDocTag } from "@/jsDoc/getJsDocTag";
 import type { OAS } from "@/OAS";
-import { StringValidator } from "@/validators/String";
+import { StringValidator } from "@/validators/StringValidator";
 import type { Validator } from "@/validators/Validator";
 import { SchemaObject } from "../SchemaObject";
 

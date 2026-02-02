@@ -2,4 +2,4 @@
 
 [test]
 coverageSkipTestFiles = true
-coveragePathIgnorePatterns = "tests/**"
+coveragePathIgnorePatterns = "src/tests/**"

@@ -1,7 +1,11 @@
 import { isJSDocLink, type Node } from "typescript";
 import { readJsDocLink } from "./readJsDocLink";
 
-/** Trimmed value of the JSDoc comment on the given {@link node}. */
+/**
+ * Trimmed value of the JSDoc comment on the given {@link node}.
+ *
+ * Note that this is **not** the value of the **\@description** JSDoc tag.
+ */
 export function getJsDocDescription(node: Node): string | null {
     const comment = node.jsDoc?.at(0)?.comment;
 

@@ -1,8 +1,8 @@
 import { type Node, SyntaxKind } from "typescript";
 import type { ReferenceDatabase } from "@/classes/ReferenceDatabase";
 import { getSource } from "@/helpers/getSource";
-import { getJsDocDescription } from "@/helpers/jsDoc/getJsDocDescription";
-import { getJsDocExample } from "@/helpers/jsDoc/getJsDocExample";
+import { getJsDocDescription } from "@/jsDoc/getJsDocDescription";
+import { getJsDocExample } from "@/jsDoc/getJsDocExample";
 import type { OAS } from "@/OAS";
 import type { AnyObject } from "@/types/AnyObject";
 import type { Validator } from "@/validators/Validator";
@@ -37,8 +37,7 @@ export abstract class SchemaObject<T extends AnySupportedType = AnySupportedType
 
     private readonly description: string | null;
 
-    // TODO: validate this
-    private readonly example: T | null;
+    public readonly example: T | null;
 
     protected readonly refDb: ReferenceDatabase;
 

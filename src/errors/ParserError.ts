@@ -14,6 +14,10 @@ export class ParserError extends Error {
         this.node = node;
     }
 
+    /**
+     * For the purposes of logging, use this instead of the {@link ParserError} itself, as the
+     * latter contains a {@link Node} object which shows a lot of useless information when logged.
+     */
     public makeChild(): Error {
         return new Error(
             `ParserError with ${SyntaxKind[this.node.kind]} node at ${getSource(this.node)}: ${this.message}`,

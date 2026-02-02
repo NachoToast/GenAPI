@@ -1,20 +1,39 @@
 import { describe, expect, test } from "bun:test";
 import { ValidationError } from "@/errors/ValidationError";
-import { StringValidator } from "./String";
+import { testStrings, testValuesExcept } from "@/tests/testValues";
+import { StringValidator } from "./StringValidator";
 
 describe(StringValidator.name, () => {
     const long = "long long string";
     const medium = "medium string";
     const short = "short";
 
+    describe(StringValidator.prototype.validate.name, () => {
+        test("handles strings", () => {
+            const validator = new StringValidator();
+
+            for (const value of testStrings) {
+                validator.validate(value);
+            }
+        });
+
+        test("throws a ValidationError on non-strings", () => {
+            const validator = new StringValidator();
+
+            for (const value of testValuesExcept("strings")) {
+                expect(() => validator.validate(value)).toThrowError(ValidationError);
+            }
+        });
+    });
+
     describe(StringValidator.prototype.setMinLength.name, () => {
-        test("handles null", () => {
+        test("does not set a minimum length if null", () => {
             const validator = new StringValidator().setMinLength(null);
 
             validator.validate("");
         });
 
-        test("respects minimum length", () => {
+        test("respects the minimum length", () => {
             const validator = new StringValidator().setMinLength(medium.length);
 
             expect(() => validator.validate(short)).toThrowError(ValidationError);
@@ -25,13 +44,13 @@ describe(StringValidator.name, () => {
     });
 
     describe(StringValidator.prototype.setMaxLength.name, () => {
-        test("handles null", () => {
+        test("does not set a maximum length if null", () => {
             const validator = new StringValidator().setMaxLength(null);
 
-            validator.validate("");
+            validator.validate("a very very very very long string");
         });
 
-        test("respects maximum length", () => {
+        test("respects the maximum length", () => {
             const validator = new StringValidator().setMaxLength(medium.length);
 
             validator.validate(short);
@@ -41,12 +60,12 @@ describe(StringValidator.name, () => {
         });
     });
 
-    describe("enum values", () => {
-        test("throws if empty", () => {
+    describe(StringValidator.prototype.setEnum.name, () => {
+        test("throws a ParserError if an empty array is provided", () => {
             expect(() => new StringValidator().setEnum([])).toThrowError(Error);
         });
 
-        test("handles singular", () => {
+        test("respects arrays with one item", () => {
             const single = ["single string value"];
 
             const validator = new StringValidator().setEnum(single);
@@ -56,7 +75,7 @@ describe(StringValidator.name, () => {
             expect(() => validator.validate("another value")).toThrowError(ValidationError);
         });
 
-        test("handles multiple", () => {
+        test("respects arrays with multiple items", () => {
             const multiple = ["a", "b"];
 
             const validator = new StringValidator().setEnum(multiple);

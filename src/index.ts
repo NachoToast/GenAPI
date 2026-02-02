@@ -11,8 +11,8 @@ import { ParserError } from "./errors/ParserError";
 import { handleNode } from "./handlers/handleNode";
 import { getReferencedType } from "./helpers/getReferencedType";
 import { getSource } from "./helpers/getSource";
-import { getJsDocDescription } from "./helpers/jsDoc/getJsDocDescription";
-import { getJsDocTag } from "./helpers/jsDoc/getJsDocTag";
+import { getJsDocDescription } from "./jsDoc/getJsDocDescription";
+import { getJsDocTag } from "./jsDoc/getJsDocTag";
 import type { OAS } from "./OAS";
 import type { SchemaObject } from "./schemas/SchemaObject";
 import type { ResolvedEndpoint } from "./types/Endpoints";
@@ -164,7 +164,7 @@ function generateInternal(config: GeneratorConfig): GeneratorReturn {
 
     const refDb = new ReferenceDatabase();
 
-    const handlerArgs: HandlerArgs = { refDb, typeChecker, handleNode };
+    const handlerArgs: HandlerArgs = { refDb, typeChecker };
 
     function isRootType(node: TypeNode | undefined): node is TypeNode {
         if (node === undefined || !isTypeReferenceNode(node)) {

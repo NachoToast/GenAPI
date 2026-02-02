@@ -1,7 +1,7 @@
 import type { PropertySignature } from "typescript";
 import type { ReferenceDatabase } from "@/classes/ReferenceDatabase";
 import type { OAS } from "@/OAS";
-import { NumberValidator } from "@/validators/Number";
+import { NumberValidator } from "@/validators/NumberValidator";
 import type { Validator } from "@/validators/Validator";
 import { SchemaObject, type SchemaType } from "../SchemaObject";
 

@@ -13,6 +13,7 @@ import type { SchemaObject } from "@/schemas/SchemaObject";
 import { PropertyStringKeywordSchema } from "@/schemas/string/PropertyStringKeywordSchema";
 import { PropertyStringLiteralSchema } from "@/schemas/string/PropertyStringLiteralSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
+import { handleNode } from "./handleNode";
 
 export function handlePropertySignature(
     node: PropertySignature,
@@ -46,5 +47,5 @@ export function handlePropertySignature(
         return new PropertyNumberLiteralSchema(node, args.refDb, Number(value.text));
     }
 
-    return args.handleNode(value, args);
+    return handleNode(value, args);
 }

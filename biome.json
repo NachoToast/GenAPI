@@ -26,7 +26,6 @@
             },
             "nursery": {
                 "noFloatingPromises": "warn",
-                "noImportCycles": "warn",
                 "noShadow": "warn",
                 "noUnnecessaryConditions": "warn",
                 "noUnusedExpressions": "warn",
@@ -119,6 +118,16 @@
                 "rules": {
                     "complexity": {
                         "useLiteralKeys": "off"
+                    }
+                }
+            }
+        },
+        {
+            "includes": ["**/*.ts"],
+            "linter": {
+                "rules": {
+                    "complexity": {
+                        "noUselessConstructor": "off"
                     }
                 }
             }

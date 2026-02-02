@@ -9,8 +9,9 @@ import {
     type Node,
     SyntaxKind,
 } from "typescript";
+import { ParserError } from "@/errors/ParserError";
+import { ValidationError } from "@/errors/ValidationError";
 import { getReferencedType } from "@/helpers/getReferencedType";
-import { getSource } from "@/helpers/getSource";
 import { NumberKeywordSchema } from "@/schemas/number/NumberKeywordSchema";
 import { NumberLiteralSchema } from "@/schemas/number/NumberLiteralSchema";
 import type { SchemaObject } from "@/schemas/SchemaObject";
@@ -21,18 +22,10 @@ import { handleInterfaceDeclaration } from "./handleInterfaceDeclaration";
 import { handlePropertySignature } from "./handlePropertySignature";
 import { handleTypeAliasDeclaration } from "./handleTypeAliasDeclaration";
 
-function logNotSupported(node: Node): void {
-    console.log(
-        getSource(node),
-        `Handler for node kind ${SyntaxKind[node.kind]} is not yet implemented`,
-    );
-}
-
-export function handleNode(node: Node, args: HandlerArgs): SchemaObject | null {
+function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null {
     const asRef = args.refDb.tryReference(node);
 
     if (asRef !== null) {
-        // console.log(`Reference hit! ${getSource(node)} is ${asRef.toStringShort()} `);
         return asRef;
     }
 
@@ -50,7 +43,7 @@ export function handleNode(node: Node, args: HandlerArgs): SchemaObject | null {
     }
 
     if (isTypeReferenceNode(node)) {
-        return handleNode(getReferencedType(node, args.typeChecker), args);
+        return handleNodeInternal(getReferencedType(node, args.typeChecker), args);
     }
 
     if (isTypeAliasDeclaration(node)) {
@@ -66,7 +59,7 @@ export function handleNode(node: Node, args: HandlerArgs): SchemaObject | null {
     }
 
     if (isLiteralTypeNode(node)) {
-        return handleNode(node.literal, args);
+        return handleNodeInternal(node.literal, args);
     }
 
     if (isStringLiteral(node)) {
@@ -77,7 +70,33 @@ export function handleNode(node: Node, args: HandlerArgs): SchemaObject | null {
         return new NumberLiteralSchema(node, args.refDb, Number(node.text));
     }
 
-    logNotSupported(node);
-    return null;
-    // throw new ParserError(node, `Unsure how to handle node of kind ${SyntaxKind[node.kind]}`);
+    throw new ParserError(node, `Unsure how to handle node of kind ${SyntaxKind[node.kind]}`);
+}
+
+/**
+ * Converts a {@link node} to a {@link SchemaObject}.
+ *
+ * Note that **all** instantiated schema objects **must** originate from this function so that
+ * necessary post-instantiation logic can occur.
+ */
+export function handleNode(node: Node, args: HandlerArgs): SchemaObject | null {
+    const schemaObject = handleNodeInternal(node, args);
+
+    if (schemaObject !== null && schemaObject.example !== null) {
+        // Post-Instantiation Logic
+        try {
+            schemaObject.makeValidator().validate(schemaObject.example);
+        } catch (error) {
+            if (!(error instanceof ValidationError)) {
+                throw error;
+            }
+
+            throw new ParserError(
+                schemaObject.node,
+                `JSDoc example tag does not conform to the schema: ${error.message}`,
+            );
+        }
+    }
+
+    return schemaObject;
 }
