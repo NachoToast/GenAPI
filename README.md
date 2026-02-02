@@ -44,9 +44,7 @@ bun run start
 
 - [ ] Union Types
   - [ ] Special case for union with null, should set `SchemaObject.nullable`
-- [ ] More Interface Stuff
-  - [ ] Optional keys, pretty sure it's a flag on the propery signature node.
-  - [ ] Interface extension.
+- [ ] Interface extension.
 - [ ] Mapped Types
   - [ ] Namely `Record<K, V>`
   - [ ] Other types I dislike, e.g. `{ [key: string]: ... }`,
