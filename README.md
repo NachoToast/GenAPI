@@ -13,6 +13,8 @@ Not to be confused with "GenAI", Gen**API** generates an Open API schema file an
 
 - [Technologies](#technologies)
 - [How it Works](#how-it-works)
+- [Limitations](#limitations)
+- [Key Features](#key-features)
 - [Installation](#installation)
 - [To Do](#to-do)
 
@@ -27,7 +29,38 @@ Generation is split into 2 stages, **parsing** and **building**.
 
 **Parsing** is done first, the TypeScript AST of your project is read and endpoint-related types such as request bodies, responses, and paths are stored.
 
-**Building** converts the stored objects into JSON form for the schema file, and also makes validator functions for request bodies.
+**Building** converts the stored objects into JSON form for the schema file, and also makes validator functions for request bodies and parameters.
+
+### Limitations
+
+- Only string-like object keys are supported:
+
+```ts
+interface MyInterface {
+    myStringKey: SomeValue; // good
+
+    123: SomeOtherValue; // bad
+}
+```
+
+- Non-URL JSDoc links are not converted to references, instead they're just shown in bold:
+
+```ts
+type SomeType = // ...
+
+/** Some description, {@link SomeType} */
+type SomeOtherType = // ...
+// outputs **SomeType**, not #/components/schemas/SomeType
+```
+
+### Key Features
+
+- Types referenced more than once are used by reference instead of by value (`"$ref": "#/components/schemas/..."`).
+- Referenced types with identical names are given discriminators (e.g. `MyInterface#1`, `MyInterface#2`).
+- All generated paths show a link to their source via `externalDocs` (configurable).
+- Deterministic, so you can add your `openapi.json` to VCS without worry (e.g. object keys match the order they're written in the source code).
+- Highly configurable, you instruct the generator how to find and read the types to generate from.
+- Include extra validation and generation logic via JSDoc tags, `@integer`, `@minLength`, `@example`, etc.
 
 ### Installation
 
@@ -43,6 +76,8 @@ bun run start
 ### To Do
 
 - [ ] Interface extension.
+- [ ] Better handling for homogenous unions?
+- [ ] String `format` comp, regexp validation.
 - [ ] Mapped Types
   - [ ] Namely `Record<K, V>`
   - [ ] Other types I dislike, e.g. `{ [key: string]: ... }`,
