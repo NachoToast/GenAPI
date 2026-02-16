@@ -1,5 +1,5 @@
 import { type Node, SyntaxKind } from "typescript";
-import { getSource } from "@/helpers/getSource";
+import { getNodeLocation } from "@/utils/getNodeLocation";
 
 /**
  * Error related to navigating through the AST of a source file.
@@ -17,10 +17,16 @@ export class ParserError extends Error {
     /**
      * For the purposes of logging, use this instead of the {@link ParserError} itself, as the
      * latter contains a {@link Node} object which shows a lot of useless information when logged.
+     *
+     * @example
+     * ```ts
+     * console.log(myError); // Bad
+     * console.log(myError.makeChild()); // Good
+     * ```
      */
     public makeChild(): Error {
         return new Error(
-            `ParserError with ${SyntaxKind[this.node.kind]} node at ${getSource(this.node)}: ${this.message}`,
+            `ParserError with ${SyntaxKind[this.node.kind]} node at ${getNodeLocation(this.node)}: ${this.message}`,
         );
     }
 }

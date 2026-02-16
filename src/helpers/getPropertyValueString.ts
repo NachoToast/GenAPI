@@ -16,21 +16,7 @@ import { enumerateProperties } from "./enumerateProperties";
  * // keyA => "ValueA", keyC => null
  * ```
  */
-export function getPropertyValueString(
-    node: ObjectLiteralExpression,
-    key: string,
-    required?: false,
-): string | null;
-export function getPropertyValueString(
-    node: ObjectLiteralExpression,
-    key: string,
-    required: true,
-): string;
-export function getPropertyValueString(
-    node: ObjectLiteralExpression,
-    key: string,
-    required?: boolean,
-): string | null {
+export function getPropertyValueString(node: ObjectLiteralExpression, key: string): string {
     for (const expression of enumerateProperties(node)) {
         const identifier = expression.name;
 
@@ -56,9 +42,5 @@ export function getPropertyValueString(
         return initialiser.text.toString();
     }
 
-    if (required) {
-        throw new ParserError(node, `Expected property "${key}" to be defined`);
-    }
-
-    return null;
+    throw new ParserError(node, `Expected property "${key}" to be defined`);
 }

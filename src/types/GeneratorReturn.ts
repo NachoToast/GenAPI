@@ -1,5 +1,5 @@
 import type { OAS } from "@/OAS";
-import type { ValidationFn } from "./ValidationFn";
+import type { ValidationFn } from "./ValidationFns";
 
 export interface GeneratorReturn {
     validationMap: Map<string, ValidationFn>;

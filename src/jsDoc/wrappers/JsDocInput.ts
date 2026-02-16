@@ -1,7 +1,7 @@
 import type { Node } from "typescript";
 import { ParserError } from "@/errors/ParserError";
 import { JsDocNumber } from "./JsDocNumber";
-import { JsDocOutput } from "./JsDocOutput";
+import { JsDocString } from "./JsDocString";
 
 export class JsDocInput {
     private readonly node: Node;
@@ -16,13 +16,13 @@ export class JsDocInput {
         this.value = value;
     }
 
-    public string(): JsDocOutput<string> {
+    public string(): JsDocString {
         if (this.value.length > 1 && this.value.at(0) === '"' && this.value.at(-1) === '"') {
             // starts and ends with quotation marks, trim them off
-            return new JsDocOutput(this.node, this.tagName, this.value.slice(1, -1));
+            return new JsDocString(this.node, this.tagName, this.value.slice(1, -1));
         }
 
-        return new JsDocOutput(this.node, this.tagName, this.value);
+        return new JsDocString(this.node, this.tagName, this.value);
     }
 
     public number(): JsDocNumber {
@@ -48,7 +48,14 @@ export class JsDocInput {
     public integer(): JsDocNumber {
         const value = Number(this.value);
 
-        if (this.value.trim() === "" || !Number.isInteger(value)) {
+        if (this.value.trim() === "") {
+            throw new ParserError(
+                this.node,
+                `Value for JSDoc tag "${this.tagName}" must be an integer`,
+            );
+        }
+
+        if (!Number.isSafeInteger(value)) {
             throw new ParserError(
                 this.node,
                 `Value for JSDoc tag "${this.tagName}" must be an integer (got ${this.value})`,

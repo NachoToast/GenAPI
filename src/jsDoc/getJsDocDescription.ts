@@ -14,12 +14,9 @@ export function getJsDocDescription(node: Node): string | null {
     }
 
     if (typeof comment === "string") {
-        return comment.trim();
+        return comment.trim() || null;
     }
 
-    /**
-     * A string {@link https://www.example.com example.com} alias.
-     */
     const output: string[] = [];
 
     for (const commentNode of comment) {
@@ -30,5 +27,5 @@ export function getJsDocDescription(node: Node): string | null {
         }
     }
 
-    return output.join("");
+    return output.join("").trim() || null;
 }

@@ -1,5 +1,5 @@
 import type { Node } from "typescript";
-import type { SchemaObject } from "@/schemas/SchemaObject";
+import type { SchemaObject } from "@/schemas/base/SchemaObject";
 import type { RequestMethod } from "./RequestMethod";
 
 interface BaseEndpoint {

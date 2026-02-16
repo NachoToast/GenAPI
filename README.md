@@ -42,8 +42,6 @@ bun run start
 
 ### To Do
 
-- [ ] Union Types
-  - [ ] Special case for union with null, should set `SchemaObject.nullable`
 - [ ] Interface extension.
 - [ ] Mapped Types
   - [ ] Namely `Record<K, V>`
@@ -51,8 +49,6 @@ bun run start
 - [ ] Utility types? Like `Pick`, `Omit`, `Exclude`, etc. Depends how easily the "final" type can be retrieved though.
 - [ ] Type literals, e.g. `{ foo: "bar" }`
 - [ ] Arrays
-- [ ] Enums
-- [ ] Booleans
 - [ ] Config hooks for adding security schemes, common responses, etc...
 - [ ] Better config for custom content types.
 - [ ] Enforce `@returns` tag on all endpoints so response description is always spec conformant.

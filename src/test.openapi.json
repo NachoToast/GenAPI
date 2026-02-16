@@ -127,7 +127,7 @@
                     }
                 },
                 "externalDocs": {
-                    "url": "examples\\basic\\basicExample.ts#22:1",
+                    "url": "examples\\basic\\basicExample.ts#25:1",
                     "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
                 },
                 "requestBody": {
@@ -136,6 +136,7 @@
                         "application/json": {
                             "schema": {
                                 "type": "string",
+                                "description": "hello world!",
                                 "enum": [
                                     ""
                                 ]
@@ -161,7 +162,7 @@
                     }
                 },
                 "externalDocs": {
-                    "url": "examples\\basic\\basicExample.ts#32:1",
+                    "url": "examples\\basic\\basicExample.ts#35:1",
                     "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
                 },
                 "requestBody": {
@@ -186,10 +187,10 @@
                             "application/json": {
                                 "schema": {
                                     "type": "object",
+                                    "additionalProperties": false,
                                     "required": [
                                         "foo"
                                     ],
-                                    "additionalProperties": false,
                                     "properties": {
                                         "foo": {
                                             "type": "string",
@@ -204,7 +205,7 @@
                     }
                 },
                 "externalDocs": {
-                    "url": "examples\\basic\\basicExample.ts#42:1",
+                    "url": "examples\\basic\\basicExample.ts#45:1",
                     "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
                 }
             }
@@ -225,7 +226,7 @@
                     }
                 },
                 "externalDocs": {
-                    "url": "examples\\basic\\basicExample.ts#54:1",
+                    "url": "examples\\basic\\basicExample.ts#57:1",
                     "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
                 },
                 "requestBody": {
@@ -256,7 +257,7 @@
                     }
                 },
                 "externalDocs": {
-                    "url": "examples\\basic\\basicExample.ts#65:1",
+                    "url": "examples\\basic\\basicExample.ts#68:1",
                     "description": "C:/Users/lima/Documents/Projects/GenAPI/examples/basic/basicExample.ts"
                 },
                 "requestBody": {
@@ -276,40 +277,76 @@
         "schemas": {
             "SharedInterfaceA": {
                 "type": "object",
+                "additionalProperties": false,
                 "description": "Description for SharedInterfaceA.",
                 "required": [
                     "fieldA",
-                    "fieldB"
+                    "fieldC"
                 ],
-                "additionalProperties": false,
                 "properties": {
                     "fieldA": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "fieldB": {
                         "type": "integer",
                         "enum": [
                             7
                         ]
+                    },
+                    "fieldC": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "description": "Represents the `null` type.",
+                                "nullable": true
+                            }
+                        ]
                     }
                 }
             },
             "SharedInterfaceB": {
                 "type": "object",
+                "additionalProperties": false,
                 "description": "Description for SharedInterfaceB, which is next to **SharedInterfaceA**.",
                 "required": [
                     "fieldA",
-                    "fieldD"
+                    "fieldB",
+                    "fieldC",
+                    "fieldD",
+                    "fieldE"
                 ],
-                "additionalProperties": false,
                 "properties": {
                     "fieldA": {
                         "$ref": "#/components/schemas/SharedInterfaceA"
                     },
+                    "fieldB": {
+                        "type": "boolean"
+                    },
+                    "fieldC": {
+                        "$ref": "#/components/schemas/SomeEnum"
+                    },
                     "fieldD": {
                         "$ref": "#/components/schemas/SharedInterfaceB"
+                    },
+                    "fieldE": {
+                        "$ref": "#/components/schemas/SomeEnum"
                     }
                 }
+            },
+            "SomeEnum": {
+                "description": "Description for SomeEnum?\n- **ValueOne** = \"v1\"\n- **ValueTwo** = \"v2\"\n- **ValueThree** = \"v3\" - wow\n- **ValueFour** = 20 - test",
+                "enum": [
+                    "v1",
+                    "v2",
+                    "v3",
+                    20
+                ]
             }
         }
     }

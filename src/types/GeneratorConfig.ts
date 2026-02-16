@@ -18,8 +18,21 @@ export interface GeneratorConfig {
      */
     pathAliases?: Record<string, string[]>;
 
-    /** Function that returns the root type node that endpoints are generated from. */
-    getRootType: (node: Node) => Node | null;
+    /**
+     * Full path to the TypeScript file where the root endpoint type is located.
+     *
+     * This is used alongside {@link getRootType}.
+     *
+     * @example join(__dirname, "types", "Endpoint.ts")
+     */
+    rootTypeFile: string;
+
+    /**
+     * Function that returns the root type node that endpoints are generated from.
+     *
+     * Note that this is only called on nodes in the {@link rootTypeFile}.
+     */
+    getRootType(node: Node): TypeNode | null;
 
     getEndpoints(node: Node, isRootType: IsRootTypeFn): Generator<BasicEndpoint>;
 }

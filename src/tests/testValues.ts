@@ -3,7 +3,6 @@ export const testStrings: string[] = ["", "example", "\n", "  untrimmed   "];
 export const testIntegers: number[] = [
     Number.MIN_SAFE_INTEGER,
     Number.MAX_SAFE_INTEGER,
-    Number.MAX_VALUE,
     -5,
     -1,
     0,
@@ -19,6 +18,7 @@ export const testNonIntegers: number[] = [
     Number.EPSILON,
     Math.PI,
     Number.MIN_VALUE,
+    Number.MAX_VALUE,
 ];
 
 export const testNumbers: number[] = [...testIntegers, ...testNonIntegers];

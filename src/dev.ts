@@ -3,8 +3,10 @@ import { join } from "node:path";
 import {
     isInterfaceDeclaration,
     isObjectLiteralExpression,
+    isTypeReferenceNode,
     isVariableStatement,
     type Node,
+    type TypeNode,
 } from "typescript";
 import { generate } from ".";
 import { ParserError } from "./errors/ParserError";
@@ -19,7 +21,7 @@ import type { IsRootTypeFn } from "./types/GeneratorConfig";
 import type { GeneratorReturn } from "./types/GeneratorReturn";
 import "../examples/basic/basicExample";
 
-function getRootType(node: Node): Node | null {
+function getRootType(node: TypeNode): TypeNode | null {
     if (isInterfaceDeclaration(node) && node.name.escapedText === "Endpoint") {
         return node;
     }
@@ -27,7 +29,7 @@ function getRootType(node: Node): Node | null {
     return null;
 }
 
-function* getHandlers(node: Node, isRootType: IsRootTypeFn): Generator<BasicEndpoint> {
+function* getEndpoints(node: Node, isRootType: IsRootTypeFn): Generator<BasicEndpoint> {
     if (!isVariableStatement(node)) {
         return;
     }
@@ -51,13 +53,17 @@ function* getHandlers(node: Node, isRootType: IsRootTypeFn): Generator<BasicEndp
         );
     }
 
-    const generics = getAllGenerics(type, true);
+    if (!isTypeReferenceNode(type)) {
+        throw new ParserError(type, "Expected Endpoint to have a type referencing the root type");
+    }
+
+    const generics = getAllGenerics(type);
 
     yield {
         node,
         operationId: getVariableName(node),
-        method: asRequestMethod(node, getPropertyValueString(initializer, "method", true)),
-        path: getPropertyValueString(initializer, "path", true),
+        method: asRequestMethod(node, getPropertyValueString(initializer, "method")),
+        path: getPropertyValueString(initializer, "path"),
         requestBody: generics.at(0),
         responseBody: generics.at(1),
         pathParams: generics.at(2),
@@ -69,8 +75,9 @@ const startTime: number = Date.now();
 
 const { components, paths }: GeneratorReturn = generate({
     rootFile: join(__dirname, "..", "examples", "basic", "basicExample.ts"),
+    rootTypeFile: join(__dirname, "..", "examples", "basic", "Endpoint.ts"),
     getRootType,
-    getEndpoints: getHandlers,
+    getEndpoints,
 });
 
 console.log(`Generation Complete after ${Date.now() - startTime}ms`);

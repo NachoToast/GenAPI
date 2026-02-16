@@ -1,49 +1,68 @@
 import {
+    isEnumDeclaration,
     isInterfaceDeclaration,
     isLiteralTypeNode,
     isNumericLiteral,
-    isPropertySignature,
     isStringLiteral,
     isTypeAliasDeclaration,
     isTypeReferenceNode,
+    isUnionTypeNode,
     type Node,
     SyntaxKind,
 } from "typescript";
 import { ParserError } from "@/errors/ParserError";
-import { ValidationError } from "@/errors/ValidationError";
 import { getReferencedType } from "@/helpers/getReferencedType";
-import { NumberKeywordSchema } from "@/schemas/number/NumberKeywordSchema";
-import { NumberLiteralSchema } from "@/schemas/number/NumberLiteralSchema";
-import type { SchemaObject } from "@/schemas/SchemaObject";
-import { StringKeywordSchema } from "@/schemas/string/StringKeywordSchema";
-import { StringLiteralSchema } from "@/schemas/string/StringLiteralSchema";
+import { SchemaObject } from "@/schemas/base/SchemaObject";
+import { booleanKeywordSchema, booleanLiteralSchema } from "@/schemas/boolean";
+import { compDescription } from "@/schemas/components/compDescription";
+import { compTypeAny } from "@/schemas/components/compTypeAny";
+import { compTypeNull } from "@/schemas/components/compTypeNull";
+import { compTypeUndefined } from "@/schemas/components/compTypeUndefined";
+import { compTypeUnknown } from "@/schemas/components/compTypeUnknown";
+import { numberKeywordSchema, numberLiteralSchema } from "@/schemas/number";
+import { stringKeywordSchema, stringLiteralSchema } from "@/schemas/string";
 import type { HandlerArgs } from "@/types/HandlerArgs";
+import { handleEnumDeclaration } from "./handleEnumDeclaration";
 import { handleInterfaceDeclaration } from "./handleInterfaceDeclaration";
-import { handlePropertySignature } from "./handlePropertySignature";
 import { handleTypeAliasDeclaration } from "./handleTypeAliasDeclaration";
+import { handleUnionTypeNode } from "./handleUnionTypeNode";
 
 function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null {
-    const asRef = args.refDb.tryReference(node);
+    const asRef = args.refDb.get(node);
 
-    if (asRef !== null) {
+    if (asRef !== undefined) {
+        asRef.referenceCount++;
         return asRef;
     }
 
+    const { refDb, typeChecker } = args;
+
     switch (node.kind) {
         case SyntaxKind.AnyKeyword:
-        case SyntaxKind.NeverKeyword:
-        case SyntaxKind.UndefinedKeyword:
+            return new SchemaObject(node, refDb, compTypeAny, compDescription);
         case SyntaxKind.UnknownKeyword:
+            return new SchemaObject(node, refDb, compTypeUnknown, compDescription);
+        case SyntaxKind.UndefinedKeyword:
+            return new SchemaObject(node, refDb, compTypeUndefined, compDescription);
+        case SyntaxKind.NeverKeyword:
         case SyntaxKind.VoidKeyword:
             return null;
-        case SyntaxKind.NumberKeyword:
-            return new NumberKeywordSchema(node, args.refDb);
+        case SyntaxKind.NullKeyword:
+            return new SchemaObject(node, refDb, compTypeNull, compDescription);
         case SyntaxKind.StringKeyword:
-            return new StringKeywordSchema(node, args.refDb);
+            return stringKeywordSchema(node, refDb);
+        case SyntaxKind.NumberKeyword:
+            return numberKeywordSchema(node, refDb);
+        case SyntaxKind.BooleanKeyword:
+            return booleanKeywordSchema(node, refDb);
+        case SyntaxKind.TrueKeyword:
+            return booleanLiteralSchema(node, refDb, [true]);
+        case SyntaxKind.FalseKeyword:
+            return booleanLiteralSchema(node, refDb, [false]);
     }
 
     if (isTypeReferenceNode(node)) {
-        return handleNodeInternal(getReferencedType(node, args.typeChecker), args);
+        return handleNodeInternal(getReferencedType(node, typeChecker), args);
     }
 
     if (isTypeAliasDeclaration(node)) {
@@ -54,49 +73,48 @@ function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null 
         return handleInterfaceDeclaration(node, args);
     }
 
-    if (isPropertySignature(node)) {
-        return handlePropertySignature(node, args);
-    }
-
     if (isLiteralTypeNode(node)) {
         return handleNodeInternal(node.literal, args);
     }
 
     if (isStringLiteral(node)) {
-        return new StringLiteralSchema(node, args.refDb, node.text);
+        return stringLiteralSchema(node, refDb, [node.text]);
     }
 
     if (isNumericLiteral(node)) {
-        return new NumberLiteralSchema(node, args.refDb, Number(node.text));
+        return numberLiteralSchema(node, refDb, [Number(node.text)]);
     }
 
-    throw new ParserError(node, `Unsure how to handle node of kind ${SyntaxKind[node.kind]}`);
+    if (isUnionTypeNode(node)) {
+        return handleUnionTypeNode(node, args);
+    }
+
+    if (isEnumDeclaration(node)) {
+        return handleEnumDeclaration(node, args);
+    }
+
+    throw new ParserError(node, "Unsure how to handle a node of this kind");
 }
 
 /**
  * Converts a {@link node} to a {@link SchemaObject}.
  *
  * Note that **all** instantiated schema objects **must** originate from this function so that
- * necessary post-instantiation logic can occur.
+ * post-instantiation logic can occur.
  */
 export function handleNode(node: Node, args: HandlerArgs): SchemaObject | null {
-    const schemaObject = handleNodeInternal(node, args);
+    try {
+        const schemaObject = handleNodeInternal(node, args);
 
-    if (schemaObject !== null && schemaObject.example !== null) {
-        // Post-Instantiation Logic
-        try {
-            schemaObject.makeValidator().validate(schemaObject.example);
-        } catch (error) {
-            if (!(error instanceof ValidationError)) {
-                throw error;
-            }
+        schemaObject?.doPostInitActions();
 
-            throw new ParserError(
-                schemaObject.node,
-                `JSDoc example tag does not conform to the schema: ${error.message}`,
-            );
+        return schemaObject;
+    } catch (error) {
+        if (!(error instanceof ParserError)) {
+            throw error;
         }
-    }
 
-    return schemaObject;
+        console.log(error.makeChild());
+        return null;
+    }
 }

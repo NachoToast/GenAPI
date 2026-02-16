@@ -21,17 +21,21 @@ export function readJsDocLink(node: JSDocLink): string {
         const url = split[0];
 
         if (!URL.canParse(url)) {
-            throw new ParserError(node, `JSDoc link tag does not contain a valid link ("${url}")`);
+            throw new ParserError(node, `JSDoc link tag does not contain a valid URL ("${url}")`);
         }
 
         const mask = split.at(1)?.trim();
 
         if (mask === undefined || mask.length === 0) {
+            // unmasked links are displayed in plaintext
             return url;
         }
 
+        // masked links are display in markdown format
         return `[${mask}](${url})`;
     }
 
+    // in theory we could also link to referenced schemas here, but for now just show the name of
+    // the link in bold.
     return `**${name.escapedText.toString().trim()}**`;
 }

@@ -1,33 +1,56 @@
-import { type InterfaceDeclaration, isIdentifier, isPropertySignature } from "typescript";
+import {
+    type InterfaceDeclaration,
+    isIdentifier,
+    isNoSubstitutionTemplateLiteral,
+    isPrivateIdentifier,
+    isPropertySignature,
+    isStringLiteral,
+} from "typescript";
 import { ParserError } from "@/errors/ParserError";
-import { InterfaceDeclarationSchema } from "@/schemas/object/InterfaceDeclarationSchema";
+import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import { InterfaceDeclarationSchema } from "@/schemas/classes/InterfaceDeclarationSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
 import { handleNode } from "./handleNode";
 
 export function handleInterfaceDeclaration(
     node: InterfaceDeclaration,
     args: HandlerArgs,
-): InterfaceDeclarationSchema {
+): SchemaObject {
     const root = new InterfaceDeclarationSchema(node, args.refDb);
 
     for (const member of node.members) {
         if (!isPropertySignature(member)) {
+            throw new ParserError(member, "Expected a PropertySignature node");
+        }
+
+        if (member.type === undefined) {
+            throw new ParserError(member, "Encountered a PropertySignature node with no type");
+        }
+
+        const schema = handleNode(member.type, args);
+
+        if (schema === null) {
             continue;
         }
 
-        if (!isIdentifier(member.name)) {
-            throw new ParserError(member, "Expected all keys of interface to be identifiers");
+        if (
+            !(
+                isIdentifier(member.name) ||
+                isStringLiteral(member.name) ||
+                isNoSubstitutionTemplateLiteral(member.name) ||
+                isPrivateIdentifier(member.name)
+            )
+        ) {
+            throw new ParserError(member.name, "Only string object keys are supported");
         }
 
-        const value = handleNode(member, args);
+        const key = member.name.text;
 
-        if (value === null) {
-            continue;
+        if (member.questionToken === undefined) {
+            root.addRequiredKey(key, schema);
+        } else {
+            root.addOptionalkey(key, schema);
         }
-
-        const isRequired = member.questionToken === undefined;
-
-        root.addProperty(member.name.text, value, isRequired);
     }
 
     return root;

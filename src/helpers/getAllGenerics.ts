@@ -1,8 +1,8 @@
-import { isTypeReferenceNode, type NodeArray, SyntaxKind, type TypeNode } from "typescript";
+import type { NodeArray, TypeNode, TypeReferenceNode } from "typescript";
 import { ParserError } from "@/errors/ParserError";
 
 /**
- * Extracts all the generics of a {@link TypeNode}.
+ * Extracts all the generics of a {@link TypeReferenceNode}.
  *
  * @example
  * ```ts
@@ -10,22 +10,9 @@ import { ParserError } from "@/errors/ParserError";
  * // => [A, B, C]
  * ```
  */
-export function getAllGenerics(node: TypeNode, required?: false): NodeArray<TypeNode> | null;
-export function getAllGenerics(node: TypeNode, required: true): NodeArray<TypeNode>;
-export function getAllGenerics(node: TypeNode, required?: boolean): NodeArray<TypeNode> | null {
-    if (!isTypeReferenceNode(node)) {
-        throw new ParserError(
-            node,
-            `Expected a TypeReferenceNode node but got ${SyntaxKind[node.kind]}`,
-        );
-    }
-
+export function getAllGenerics(node: TypeReferenceNode): NodeArray<TypeNode> {
     if (node.typeArguments === undefined) {
-        if (required) {
-            throw new ParserError(node, "Expected typeArguments to be defined");
-        }
-
-        return null;
+        throw new ParserError(node, "Expected typeArguments to be defined");
     }
 
     return node.typeArguments;

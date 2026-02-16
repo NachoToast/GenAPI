@@ -14,6 +14,9 @@ export const simpleNumberEndpoint: Endpoint<1730, number> = {
     path: "/simple/number",
 };
 
+/**
+ * hello world!
+ */
 type StringAlias = "";
 
 type NumberAlias = number;

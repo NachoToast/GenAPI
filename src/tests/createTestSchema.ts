@@ -1,7 +1,6 @@
 import type { Node, TypeChecker } from "typescript";
-import { ReferenceDatabase } from "@/classes/ReferenceDatabase";
 import { handleNode } from "@/handlers/handleNode";
-import type { SchemaObject } from "@/schemas/SchemaObject";
+import type { SchemaObject } from "@/schemas/base/SchemaObject";
 import { createTestNode } from "./createTestNode";
 
 /**
@@ -17,7 +16,7 @@ export function createTestSchema<T extends Node>(
     getFn: (node: Node) => node is T,
 ): SchemaObject | null {
     return handleNode(createTestNode(code, getFn), {
-        refDb: new ReferenceDatabase(),
+        refDb: new Map(),
         get typeChecker(): TypeChecker {
             throw new Error("Cannot use the TypeChecker in a test context!");
         },
