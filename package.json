@@ -5,10 +5,10 @@
     "scripts": {
         "start": "bun --watch run src/index.ts",
         "lint": "biome check",
-        "lint:fix": "biome check --write",
+        "lint-fix": "biome check --write",
         "typecheck": "bun run tsc --project tsconfig.strict.json",
         "test": "bun test --concurrent",
-        "check:all": "bun run lint && bun run typecheck && bun run test"
+        "check-all": "bun run lint && bun run typecheck && bun run test"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.3.5",
