@@ -48,7 +48,7 @@ function makeFinalValidator(
     };
 }
 
-export function makeUnionValidator(schemas: SchemaObject<unknown>[]): FinalValidationFn {
+export function makeUnionValidator(schemas: SchemaObject[]): FinalValidationFn {
     const alternateValidators: AlternateValidationFn[] = [];
     const validationPaths: ValidationPath[] = [];
     const validationSummary: string[] = [];

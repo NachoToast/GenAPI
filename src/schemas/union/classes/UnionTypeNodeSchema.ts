@@ -5,13 +5,13 @@ import { SchemaObject, type ToIdentifiedArgs } from "@/schemas/base/SchemaObject
 import type { FinalValidationFn } from "@/types/ValidationFns";
 import { makeUnionValidator } from "../utils/unionValidatorUtils";
 
-class IdentifiedUnionTypeNodeSchema extends IdentifiedSchemaObject<unknown> {
-    private readonly schemas: SchemaObject<unknown>[];
+class IdentifiedUnionTypeNodeSchema extends IdentifiedSchemaObject {
+    private readonly schemas: SchemaObject[];
 
     public constructor(
         args: ToIdentifiedArgs,
         previous: IdentifiedUnionTypeNodeSchema | null,
-        schemas: SchemaObject<unknown>[],
+        schemas: SchemaObject[],
     ) {
         super(args, previous);
         this.schemas = schemas;
@@ -28,7 +28,7 @@ class IdentifiedUnionTypeNodeSchema extends IdentifiedSchemaObject<unknown> {
         return output;
     }
 
-    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<unknown> {
+    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject {
         return new IdentifiedUnionTypeNodeSchema(args, this, this.schemas);
     }
 
@@ -46,8 +46,8 @@ class IdentifiedUnionTypeNodeSchema extends IdentifiedSchemaObject<unknown> {
 /**
  * An extended schema object with an additional method to add sub-schemas to the represented node.
  */
-export class UnionTypeNodeSchema extends SchemaObject<unknown> {
-    private readonly schemas: SchemaObject<unknown>[] = [];
+export class UnionTypeNodeSchema extends SchemaObject {
+    private readonly schemas: SchemaObject[] = [];
 
     public constructor(node: UnionTypeNode) {
         super(node);
@@ -65,11 +65,11 @@ export class UnionTypeNodeSchema extends SchemaObject<unknown> {
         return output;
     }
 
-    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<unknown> {
+    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject {
         return new IdentifiedUnionTypeNodeSchema(args, null, this.schemas);
     }
 
-    public addSchemas(schemas: SchemaObject<unknown>[]): void {
+    public addSchemas(schemas: SchemaObject[]): void {
         this.schemas.push(...schemas);
     }
 

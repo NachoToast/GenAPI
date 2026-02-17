@@ -29,12 +29,12 @@ export class InterfaceDeclarationSchema extends IdentifiedSchemaObject<AnyObject
         return new InterfaceDeclarationSchema(args, this);
     }
 
-    public addRequiredKey(key: string, schema: SchemaObject<unknown>): void {
+    public addRequiredKey(key: string, schema: SchemaObject): void {
         this.required.addKey(key);
         this.properties.addProperty(key, schema);
     }
 
-    public addOptionalkey(key: string, schema: SchemaObject<unknown>): void {
+    public addOptionalkey(key: string, schema: SchemaObject): void {
         this.properties.addProperty(key, schema);
     }
 }

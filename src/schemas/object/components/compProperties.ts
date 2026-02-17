@@ -32,7 +32,7 @@ function ensureIsValidProperty(
  * against them.
  */
 export class CompProperties implements SchemaComponent<AnyObject> {
-    private readonly properties: Record<string, SchemaObject<unknown>> = {};
+    private readonly properties: Record<string, SchemaObject> = {};
 
     public doSchemaActions(schema: OAS.Schema): void {
         if (Object.keys(this.properties).length > 0) {
@@ -52,7 +52,7 @@ export class CompProperties implements SchemaComponent<AnyObject> {
         }
     }
 
-    public addProperty(name: string, schema: SchemaObject<unknown>): void {
+    public addProperty(name: string, schema: SchemaObject): void {
         this.properties[name] = schema;
     }
 }
