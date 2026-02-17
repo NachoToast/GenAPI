@@ -1,11 +1,20 @@
 import type { UnionTypeNode } from "typescript";
-import { SchemaFlag } from "@/schemas/base/SchemaFlag";
-import { SchemaObject } from "@/schemas/base/SchemaObject";
-import { UnionTypeNodeSchema } from "@/schemas/classes/UnionTypeNodeSchema";
-import { compDescription } from "@/schemas/components/compDescription";
-import { compNullable } from "@/schemas/components/compNullable";
+import {
+    AnyKeywordSchema,
+    IdentifiedAnyKeywordSchema,
+} from "@/schemas/any/classes/AnyKeywordSchema";
+import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import {
+    IdentifiedNullKeywordSchema,
+    NullKeywordSchema,
+} from "@/schemas/null/classes/NullKeywordSchema";
+import { SimpleNullUnionSchema } from "@/schemas/union/classes/SimpleNullUnionSchema";
+import { UnionTypeNodeSchema } from "@/schemas/union/classes/UnionTypeNodeSchema";
+import {
+    IdentifiedUnknownKeywordSchema,
+    UnknownKeywordSchema,
+} from "@/schemas/unknown/classes/UnknownKeywordSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
-import type { ReferenceDatabase } from "@/types/ReferenceDatabase";
 import { handleNode } from "./handleNode";
 
 /**
@@ -15,12 +24,12 @@ import { handleNode } from "./handleNode";
  * This functions checks when such cases are possible.
  */
 function handleNullUnion(
+    node: UnionTypeNode,
     a: SchemaObject,
     b: SchemaObject,
-    refDb: ReferenceDatabase,
 ): SchemaObject | null {
-    const aIsNull = a.hasFlag(SchemaFlag.CanDoSimpleNullableUnions);
-    const bIsNull = b.hasFlag(SchemaFlag.CanDoSimpleNullableUnions);
+    const aIsNull = a instanceof NullKeywordSchema || a instanceof IdentifiedNullKeywordSchema;
+    const bIsNull = b instanceof NullKeywordSchema || b instanceof IdentifiedNullKeywordSchema;
 
     if (aIsNull === bIsNull) {
         // both are null or neither are null
@@ -28,28 +37,16 @@ function handleNullUnion(
     }
 
     if (aIsNull) {
-        return new SchemaObject(b.node, refDb, ...b.components, compNullable);
+        return new SimpleNullUnionSchema(node, b);
     }
 
-    return new SchemaObject(a.node, refDb, ...a.components, compNullable);
-}
-
-function filterUnionMembers(x: SchemaObject | null): x is SchemaObject {
-    if (x === null) {
-        return false;
-    }
-
-    if (x.hasFlag(SchemaFlag.RemovedInUnions)) {
-        return false;
-    }
-
-    return true;
+    return new SimpleNullUnionSchema(node, a);
 }
 
 export function handleUnionTypeNode(node: UnionTypeNode, args: HandlerArgs): SchemaObject {
-    const root = new UnionTypeNodeSchema(node, args.refDb, compDescription);
+    const root = new UnionTypeNodeSchema(node);
 
-    const finalisedNodes = node.types.map((x) => handleNode(x, args)).filter(filterUnionMembers);
+    const finalisedNodes = node.types.map((x) => handleNode(x, args)).filter((x) => x !== null);
 
     if (finalisedNodes.length === 0) {
         return root;
@@ -59,16 +56,27 @@ export function handleUnionTypeNode(node: UnionTypeNode, args: HandlerArgs): Sch
         return finalisedNodes[0];
     }
 
-    const indexOfAny = finalisedNodes.findIndex((x) => x.hasFlag(SchemaFlag.TakesOverUnions));
+    const indexOfAny = finalisedNodes.findIndex(
+        (x) => x instanceof AnyKeywordSchema || x instanceof IdentifiedAnyKeywordSchema,
+    );
 
     if (indexOfAny !== -1) {
-        // simplify unions with any/unknown
+        // simplify unions with any
         return finalisedNodes[indexOfAny];
+    }
+
+    const indexOfUnknown = finalisedNodes.findIndex(
+        (x) => x instanceof UnknownKeywordSchema || x instanceof IdentifiedUnknownKeywordSchema,
+    );
+
+    if (indexOfUnknown !== -1) {
+        // simplify unions with unknown
+        return finalisedNodes[indexOfUnknown];
     }
 
     if (finalisedNodes.length === 2) {
         // simplify single unions with null
-        const asNullUnion = handleNullUnion(finalisedNodes[0], finalisedNodes[1], args.refDb);
+        const asNullUnion = handleNullUnion(node, finalisedNodes[0], finalisedNodes[1]);
 
         if (asNullUnion !== null) {
             return asNullUnion;

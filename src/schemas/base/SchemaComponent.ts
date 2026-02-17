@@ -1,7 +1,9 @@
-import type { Node } from "typescript";
 import type { OAS } from "@/OAS";
-import type { AlternateValidationFn, TypeValidationFn, ValidationFn } from "@/types/ValidationFns";
-import type { SchemaFlag } from "./SchemaFlag";
+import type {
+    AlternateValidationFn,
+    TypeValidationFn,
+    ValueValidationFn,
+} from "@/types/ValidationFns";
 import type { SchemaObject } from "./SchemaObject";
 
 /**
@@ -9,16 +11,6 @@ import type { SchemaObject } from "./SchemaObject";
  * JSON schema, validation logic, and more.
  */
 export interface SchemaComponent<T> {
-    /**
-     * Run when the schema object is referenced by an identifier.
-     *
-     * This method is normally used to find JSDoc tags, but can also just return the current
-     * component (`this`) if nothing special needs to happen.
-     */
-    copyToIdentified(node: Node): SchemaComponent<T>;
-
-    getFlags?(): Generator<SchemaFlag>;
-
     /**
      * Additional actions to run once the schema this component is attached to has been fully
      * initialised.
@@ -30,9 +22,12 @@ export interface SchemaComponent<T> {
 
     getTypeValidators?(): Generator<TypeValidationFn<T>>;
 
-    getExtraValidators?(): Generator<ValidationFn<T>>;
+    getValueValidators?(): Generator<ValueValidationFn<T>>;
 
     getAlternateValidators?(): Generator<AlternateValidationFn>;
 
     getValidationSummary?(): Generator<string>;
+
+    /** Any mutual exclusion logic should go here. */
+    doCopyFrom?(other: SchemaComponent<T>): void;
 }

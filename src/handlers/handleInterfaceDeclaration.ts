@@ -8,7 +8,7 @@ import {
 } from "typescript";
 import { ParserError } from "@/errors/ParserError";
 import type { SchemaObject } from "@/schemas/base/SchemaObject";
-import { InterfaceDeclarationSchema } from "@/schemas/classes/InterfaceDeclarationSchema";
+import { InterfaceDeclarationSchema } from "@/schemas/object/classes/InterfaceDeclarationSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
 import { handleNode } from "./handleNode";
 
@@ -16,7 +16,14 @@ export function handleInterfaceDeclaration(
     node: InterfaceDeclaration,
     args: HandlerArgs,
 ): SchemaObject {
-    const root = new InterfaceDeclarationSchema(node, args.refDb);
+    const root = new InterfaceDeclarationSchema(
+        {
+            node,
+            refDb: args.refDb,
+            identifier: node.name,
+        },
+        null,
+    );
 
     for (const member of node.members) {
         if (!isPropertySignature(member)) {

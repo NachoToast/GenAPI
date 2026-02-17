@@ -19,7 +19,7 @@ import type { GeneratorConfig } from "./types/GeneratorConfig";
 import type { GeneratorReturn } from "./types/GeneratorReturn";
 import type { HandlerArgs } from "./types/HandlerArgs";
 import type { ReferenceDatabase } from "./types/ReferenceDatabase";
-import type { ValidationFn } from "./types/ValidationFns";
+import type { FinalValidationFn } from "./types/ValidationFns";
 import { getNodeLocation } from "./utils/getNodeLocation";
 
 function makeProgram({ rootFile, pathAliases }: GeneratorConfig): Program {
@@ -86,8 +86,8 @@ function prepareReferences(refDb: ReferenceDatabase): Record<string, OAS.Schema>
     return output;
 }
 
-function makeValidationMap(_endpoints: ResolvedEndpoint[]): Map<string, ValidationFn> {
-    const output = new Map<string, ValidationFn>();
+function makeValidationMap(_endpoints: ResolvedEndpoint[]): Map<string, FinalValidationFn> {
+    const output = new Map<string, FinalValidationFn>();
 
     // for (const endpoint of endpoints) {
     // const validationFns: ((args: ValidationFnArgs) => void)[] = [];

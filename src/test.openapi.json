@@ -15,8 +15,8 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string",
                                     "description": "A string alias.",
+                                    "type": "string",
                                     "example": "678",
                                     "minLength": 3
                                 }
@@ -135,8 +135,8 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "type": "string",
                                 "description": "hello world!",
+                                "type": "string",
                                 "enum": [
                                     ""
                                 ]
@@ -276,9 +276,9 @@
     "components": {
         "schemas": {
             "SharedInterfaceA": {
+                "description": "Description for SharedInterfaceA.",
                 "type": "object",
                 "additionalProperties": false,
-                "description": "Description for SharedInterfaceA.",
                 "required": [
                     "fieldA",
                     "fieldC"
@@ -311,9 +311,9 @@
                 }
             },
             "SharedInterfaceB": {
+                "description": "Description for SharedInterfaceB, which is next to **SharedInterfaceA**.",
                 "type": "object",
                 "additionalProperties": false,
-                "description": "Description for SharedInterfaceB, which is next to **SharedInterfaceA**.",
                 "required": [
                     "fieldA",
                     "fieldB",

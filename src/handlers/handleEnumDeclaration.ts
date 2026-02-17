@@ -1,11 +1,18 @@
 import type { EnumDeclaration } from "typescript";
 import { ParserError } from "@/errors/ParserError";
 import type { SchemaObject } from "@/schemas/base/SchemaObject";
-import { EnumDeclarationSchema } from "@/schemas/classes/EnumDeclarationSchema";
+import { EnumDeclarationSchema } from "@/schemas/enum/EnumDeclarationSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
 
 export function handleEnumDeclaration(node: EnumDeclaration, args: HandlerArgs): SchemaObject {
-    const root = new EnumDeclarationSchema(node, args.refDb);
+    const root = new EnumDeclarationSchema(
+        {
+            node,
+            refDb: args.refDb,
+            identifier: node.name,
+        },
+        null,
+    );
 
     for (const member of node.members) {
         if (member.initializer === undefined) {

@@ -1,63 +1,40 @@
-import { type Node, SyntaxKind } from "typescript";
+import { type Identifier, type Node, SyntaxKind } from "typescript";
 import type { OAS } from "@/OAS";
-import type { AlternateValidationFn, TypeValidationFn, ValidationFn } from "@/types/ValidationFns";
+import type { ReferenceDatabase } from "@/types/ReferenceDatabase";
+import type {
+    AlternateValidationFn,
+    FinalValidationFn,
+    TypeValidationFn,
+    ValueValidationFn,
+} from "@/types/ValidationFns";
 import { getNodeLocation } from "@/utils/getNodeLocation";
-import { mergeAlternateValidators } from "@/utils/mergeAlternateValidators";
-import { mergeValidators } from "@/utils/mergeValidators";
-import type { ReferenceDatabase } from "../../types/ReferenceDatabase";
+import { makeFinalValidator, mergeAlternateValidators, mergeValidators } from "@/utils/validation";
+import type { IdentifiedSchemaObject } from "./IdentifiedSchemaObject";
 import type { SchemaComponent } from "./SchemaComponent";
-import { SchemaFlag } from "./SchemaFlag";
 
-function mergeAllValidators<T>(
-    type: TypeValidationFn<T>,
-    extra: ValidationFn<T>,
-    alt: AlternateValidationFn,
-): ValidationFn<T> {
-    return (input: unknown) => {
-        if (alt(input)) return;
+export interface ToIdentifiedArgs {
+    node: Node;
 
-        type(input);
+    identifier: Identifier;
 
-        extra(input);
-    };
+    refDb: ReferenceDatabase;
 }
 
 /** Representation of an OpenAPI schema object, generated from an AST node. */
 // biome-ignore lint/suspicious/noExplicitAny: unknown doesn't work here
-export class SchemaObject<T = any> {
+export abstract class SchemaObject<T = any> {
     private static idCounter = 0;
 
     public readonly node: Node;
-
-    public readonly refDb: ReferenceDatabase;
 
     public readonly components: ReadonlyArray<SchemaComponent<T>>;
 
     private readonly id: number;
 
-    private readonly flags: ReadonlySet<SchemaFlag>;
-
-    public constructor(
-        node: Node,
-        refDb: ReferenceDatabase,
-        ...components: ReadonlyArray<SchemaComponent<T>>
-    ) {
+    protected constructor(node: Node, ...components: ReadonlyArray<SchemaComponent<T>>) {
         this.node = node;
-        this.refDb = refDb;
         this.components = components;
         this.id = SchemaObject.idCounter++;
-
-        const flags = new Set<SchemaFlag>();
-
-        for (const component of this.components) {
-            if (component.getFlags !== undefined) {
-                for (const flag of component.getFlags()) {
-                    flags.add(flag);
-                }
-            }
-        }
-
-        this.flags = flags;
     }
 
     public doPostInitActions(): void {
@@ -66,52 +43,30 @@ export class SchemaObject<T = any> {
         }
     }
 
-    public hasFlag(flag: SchemaFlag): boolean {
-        return this.flags.has(flag);
-    }
-
-    public makeValidator(): ValidationFn<T> {
-        return mergeAllValidators(
-            this.makeTypeValidator(),
-            this.makeExtraValidator(),
-            this.makeAlternateValidator(),
-        );
-    }
-
-    public makeTypeValidator(): TypeValidationFn<T> {
-        const validators: TypeValidationFn<T>[] = [];
+    public makeValidator(): FinalValidationFn {
+        const typeValidators: TypeValidationFn<T>[] = [];
+        const valueValidators: ValueValidationFn<T>[] = [];
+        const alternateValidators: AlternateValidationFn[] = [];
 
         for (const component of this.components) {
             if (component.getTypeValidators !== undefined) {
-                validators.push(...component.getTypeValidators());
+                typeValidators.push(...component.getTypeValidators());
             }
-        }
 
-        return mergeValidators(validators);
-    }
-
-    public makeExtraValidator(): ValidationFn<T> {
-        const validators: ValidationFn<T>[] = [];
-
-        for (const component of this.components) {
-            if (component.getExtraValidators !== undefined) {
-                validators.push(...component.getExtraValidators());
+            if (component.getValueValidators !== undefined) {
+                valueValidators.push(...component.getValueValidators());
             }
-        }
 
-        return mergeValidators(validators);
-    }
-
-    public makeAlternateValidator(): AlternateValidationFn {
-        const validators: AlternateValidationFn[] = [];
-
-        for (const component of this.components) {
             if (component.getAlternateValidators !== undefined) {
-                validators.push(...component.getAlternateValidators());
+                alternateValidators.push(...component.getAlternateValidators());
             }
         }
 
-        return mergeAlternateValidators(validators);
+        return makeFinalValidator(
+            mergeValidators(typeValidators),
+            mergeValidators(valueValidators),
+            mergeAlternateValidators(alternateValidators),
+        );
     }
 
     public toSchema(): OAS.Schema {
@@ -127,6 +82,8 @@ export class SchemaObject<T = any> {
     public toJson(): OAS.Schema | OAS.Reference {
         return this.toSchema();
     }
+
+    public abstract toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<T>;
 
     public toStringShort(): string {
         const parts = this.getShortStringParts().toArray().join(",");
@@ -149,18 +106,9 @@ export class SchemaObject<T = any> {
         yield `Node: ${SyntaxKind[this.node.kind]}`;
         yield `Source: ${getNodeLocation(this.node)}`;
 
-        if (this.flags.size > 0) {
-            const flagString = this.flags
-                .values()
-                .toArray()
-                .map((x) => SchemaFlag[x])
-                .join(", ");
-
-            yield `Flags (${this.flags.size}): ${flagString}`;
-        }
-
         if (this.components.length > 0) {
             const compString = this.components.map((x) => x.constructor.name).join(", ");
+
             yield `Components (${this.components.length}): ${compString}`;
         }
     }

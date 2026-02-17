@@ -1,10 +1,11 @@
-import type { Identifier, Node } from "typescript";
+import type { Identifier } from "typescript";
 import { ParserError } from "@/errors/ParserError";
 import type { OAS } from "@/OAS";
 import type { ReferenceDatabase } from "@/types/ReferenceDatabase";
 import { getNodeLocation } from "@/utils/getNodeLocation";
+import { CompDescription, compDescription } from "./components/compDescription";
 import type { SchemaComponent } from "./SchemaComponent";
-import { SchemaObject } from "./SchemaObject";
+import { SchemaObject, type ToIdentifiedArgs } from "./SchemaObject";
 
 /**
  * A schema object representation that is identified by another node in the AST tree, such as a
@@ -13,23 +14,61 @@ import { SchemaObject } from "./SchemaObject";
  * Depending on the number of times they are referenced, these objects may instead return a `$ref`
  * when being converted to JSON.
  */
+
 // biome-ignore lint/suspicious/noExplicitAny: unknown doesn't work here
-export class IdentifiedSchemaObject<T = any> extends SchemaObject<T> {
+export abstract class IdentifiedSchemaObject<T = any> extends SchemaObject<T> {
     public referenceCount = 1;
 
     public discriminator = 0;
 
+    private description: CompDescription | null;
+
+    private readonly refDb: ReferenceDatabase;
+
     private readonly identifier: Identifier;
 
-    public constructor(
-        node: Node,
-        refDb: ReferenceDatabase,
-        identifier: Identifier,
-        ...components: ReadonlyArray<SchemaComponent<T>>
+    protected constructor(
+        { node, identifier, refDb }: ToIdentifiedArgs,
+        previous: IdentifiedSchemaObject<T> | null,
+        ...components: ReadonlyArray<SchemaComponent<T> | null>
     ) {
-        super(node, refDb, ...components.map((x) => x.copyToIdentified(node)));
+        const description = compDescription(node);
 
+        const finalComponents: SchemaComponent<T>[] = [description, ...components].filter(
+            (x) => x !== null,
+        );
+
+        if (previous !== null) {
+            const copyFns: ((other: SchemaComponent<T>) => void)[] = [];
+
+            for (const component of finalComponents) {
+                if (component.doCopyFrom !== undefined) {
+                    // todo: test necessity of .bind here
+                    copyFns.push(component.doCopyFrom.bind(component));
+                }
+            }
+
+            if (copyFns.length > 0) {
+                try {
+                    for (const prevComponent of previous.components) {
+                        for (const fn of copyFns) {
+                            fn(prevComponent);
+                        }
+                    }
+                } catch (error) {
+                    if (!(error instanceof Error)) {
+                        throw error;
+                    }
+
+                    throw new ParserError(node, error.message);
+                }
+            }
+        }
+
+        super(node, ...finalComponents);
+        this.refDb = refDb;
         this.identifier = identifier;
+        this.description = description;
 
         refDb.set(node, this);
     }
@@ -44,7 +83,7 @@ export class IdentifiedSchemaObject<T = any> extends SchemaObject<T> {
             // in the source code, it's generally a good indicator that something has gone wrong.
             throw new ParserError(
                 this.node,
-                "Tried to use a reference a schema that has exhausted all its references",
+                "Tried to reference a schema that has exhausted all of its references",
             );
         }
 
@@ -77,5 +116,13 @@ export class IdentifiedSchemaObject<T = any> extends SchemaObject<T> {
         yield `Name: ${this.getFullName()}`;
         yield `Identifier: ${getNodeLocation(this.identifier)}`;
         yield `Reference Count: ${this.referenceCount}`;
+    }
+
+    protected addToDescription(text: string): void {
+        if (this.description === null) {
+            this.description = new CompDescription(text);
+        } else {
+            this.description.addPart(text);
+        }
     }
 }

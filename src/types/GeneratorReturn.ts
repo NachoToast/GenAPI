@@ -1,8 +1,8 @@
 import type { OAS } from "@/OAS";
-import type { ValidationFn } from "./ValidationFns";
+import type { FinalValidationFn } from "./ValidationFns";
 
 export interface GeneratorReturn {
-    validationMap: Map<string, ValidationFn>;
+    validationMap: Map<string, FinalValidationFn>;
 
     paths: OAS.Paths;
 

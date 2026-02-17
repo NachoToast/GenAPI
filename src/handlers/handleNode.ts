@@ -12,15 +12,16 @@ import {
 } from "typescript";
 import { ParserError } from "@/errors/ParserError";
 import { getReferencedType } from "@/helpers/getReferencedType";
-import { SchemaObject } from "@/schemas/base/SchemaObject";
-import { booleanKeywordSchema, booleanLiteralSchema } from "@/schemas/boolean";
-import { compDescription } from "@/schemas/components/compDescription";
-import { compTypeAny } from "@/schemas/components/compTypeAny";
-import { compTypeNull } from "@/schemas/components/compTypeNull";
-import { compTypeUndefined } from "@/schemas/components/compTypeUndefined";
-import { compTypeUnknown } from "@/schemas/components/compTypeUnknown";
-import { numberKeywordSchema, numberLiteralSchema } from "@/schemas/number";
-import { stringKeywordSchema, stringLiteralSchema } from "@/schemas/string";
+import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import { BooleanKeywordSchema } from "@/schemas/boolean/classes/BooleanKeywordSchema";
+import { BooleanLiteralSchema } from "@/schemas/boolean/classes/BooleanLiteralSchema";
+import { NullKeywordSchema } from "@/schemas/null/classes/NullKeywordSchema";
+import { NumberKeywordSchema } from "@/schemas/number/classes/NumberKeywordSchema";
+import { NumberLiteralSchema } from "@/schemas/number/classes/NumberLiteralSchema";
+import { StringKeywordSchema } from "@/schemas/string/classes/StringKeywordSchema";
+import { StringLiteralSchema } from "@/schemas/string/classes/StringLiteralSchema";
+import { UndefinedKeywordSchema } from "@/schemas/undefined/classes/UndefinedKeywordSchema";
+import { UnknownKeywordSchema } from "@/schemas/unknown/classes/UnknownKeywordSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
 import { handleEnumDeclaration } from "./handleEnumDeclaration";
 import { handleInterfaceDeclaration } from "./handleInterfaceDeclaration";
@@ -35,34 +36,32 @@ function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null 
         return asRef;
     }
 
-    const { refDb, typeChecker } = args;
-
     switch (node.kind) {
         case SyntaxKind.AnyKeyword:
-            return new SchemaObject(node, refDb, compTypeAny, compDescription);
+            return new StringKeywordSchema(node);
         case SyntaxKind.UnknownKeyword:
-            return new SchemaObject(node, refDb, compTypeUnknown, compDescription);
+            return new UnknownKeywordSchema(node);
         case SyntaxKind.UndefinedKeyword:
-            return new SchemaObject(node, refDb, compTypeUndefined, compDescription);
+            return new UndefinedKeywordSchema(node);
         case SyntaxKind.NeverKeyword:
         case SyntaxKind.VoidKeyword:
             return null;
         case SyntaxKind.NullKeyword:
-            return new SchemaObject(node, refDb, compTypeNull, compDescription);
+            return new NullKeywordSchema(node);
         case SyntaxKind.StringKeyword:
-            return stringKeywordSchema(node, refDb);
+            return new StringKeywordSchema(node);
         case SyntaxKind.NumberKeyword:
-            return numberKeywordSchema(node, refDb);
+            return new NumberKeywordSchema(node);
         case SyntaxKind.BooleanKeyword:
-            return booleanKeywordSchema(node, refDb);
+            return new BooleanKeywordSchema(node);
         case SyntaxKind.TrueKeyword:
-            return booleanLiteralSchema(node, refDb, [true]);
+            return new BooleanLiteralSchema(node, true);
         case SyntaxKind.FalseKeyword:
-            return booleanLiteralSchema(node, refDb, [false]);
+            return new BooleanLiteralSchema(node, false);
     }
 
     if (isTypeReferenceNode(node)) {
-        return handleNodeInternal(getReferencedType(node, typeChecker), args);
+        return handleNodeInternal(getReferencedType(node, args.typeChecker), args);
     }
 
     if (isTypeAliasDeclaration(node)) {
@@ -78,11 +77,11 @@ function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null 
     }
 
     if (isStringLiteral(node)) {
-        return stringLiteralSchema(node, refDb, [node.text]);
+        return new StringLiteralSchema(node);
     }
 
     if (isNumericLiteral(node)) {
-        return numberLiteralSchema(node, refDb, [Number(node.text)]);
+        return new NumberLiteralSchema(node);
     }
 
     if (isUnionTypeNode(node)) {
