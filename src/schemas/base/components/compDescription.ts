@@ -16,8 +16,12 @@ export class CompDescription implements SchemaComponent<unknown> {
     }
 
     public doCopyFrom(other: SchemaComponent<unknown>): void {
-        if (other instanceof CompDescription) {
-            this.description.unshift(...other.description);
+        if (other instanceof CompDescription && other.description.length > 0) {
+            // double newline between descriptions to help distinguish them
+            this.description.unshift(
+                ...other.description.slice(0, -1),
+                `${other.description.slice(-1)[0]}\n`,
+            );
         }
     }
 
