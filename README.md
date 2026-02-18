@@ -18,6 +18,7 @@ Not to be confused with "GenAI", Gen**API** generates an OpenAPI schema and vali
 - [Limitations](#limitations)
 - [Requirements](#requirements)
 - [See Also](#see-also)
+- [NPM Package](#npm-package)
 - [To Do](#to-do)
 
 ### Overview
@@ -249,6 +250,10 @@ The only dependency you need is TypeScript. The generator itself was written on 
 
 - [TypeScript AST Viewer](https://ts-ast-viewer.com/) - a great tool for traversing through and understand TypeScript ASTs.
 - [Using the Compiler API](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API) - if you're interested in contributing.
+
+### NPM Package
+
+I haven't been bothered to set an NPM package up for this, but if you really want one I will accept any PR that sets up a deployment workflow for it.
 
 ### To Do
 
