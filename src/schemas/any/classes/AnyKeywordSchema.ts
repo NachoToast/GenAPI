@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: consumer's fault, not mine */
-
 import type { Node } from "typescript";
 import { IdentifiedSchemaObject } from "@/schemas/base/IdentifiedSchemaObject";
 import { SchemaObject, type ToIdentifiedArgs } from "@/schemas/base/SchemaObject";
