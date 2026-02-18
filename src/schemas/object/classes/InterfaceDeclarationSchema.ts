@@ -1,4 +1,3 @@
-import { compDescription } from "@/schemas/base/components/compDescription";
 import { IdentifiedSchemaObject } from "@/schemas/base/IdentifiedSchemaObject";
 import type { SchemaObject, ToIdentifiedArgs } from "@/schemas/base/SchemaObject";
 import type { AnyObject } from "@/types/AnyObject";
@@ -19,7 +18,7 @@ export class InterfaceDeclarationSchema extends IdentifiedSchemaObject<AnyObject
         const required = new CompRequired();
         const properties = new CompProperties();
 
-        super(args, previous, compObject, compDescription(args.node), required, properties);
+        super(args, previous, compObject, required, properties);
 
         this.required = required;
         this.properties = properties;

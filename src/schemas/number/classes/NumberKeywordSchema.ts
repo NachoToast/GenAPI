@@ -3,6 +3,7 @@ import { getJsDocTag } from "@/jsDoc/getJsDocTag";
 import { IdentifiedSchemaObject } from "@/schemas/base/IdentifiedSchemaObject";
 import { SchemaObject, type ToIdentifiedArgs } from "@/schemas/base/SchemaObject";
 import { compInteger } from "../components/compInteger";
+import { compMaximum } from "../components/compMaximum";
 import { compMinimum } from "../components/compMinimum";
 import { compNumber } from "../components/compNumber";
 
@@ -21,7 +22,7 @@ class IdentifiedNumberKeywordSchema extends IdentifiedSchemaObject<number> {
             previous,
             isInteger ? compInteger : compNumber,
             compMinimum(node, isInteger),
-            compMinimum(node, isInteger),
+            compMaximum(node, isInteger),
         );
 
         this.isInteger = isInteger;
