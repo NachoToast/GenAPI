@@ -5,6 +5,7 @@ import {
     isNumericLiteral,
     isStringLiteral,
     isTypeAliasDeclaration,
+    isTypeLiteralNode,
     isTypeReferenceNode,
     isUnionTypeNode,
     type Node,
@@ -26,6 +27,7 @@ import type { HandlerArgs } from "@/types/HandlerArgs";
 import { handleEnumDeclaration } from "./handleEnumDeclaration";
 import { handleInterfaceDeclaration } from "./handleInterfaceDeclaration";
 import { handleTypeAliasDeclaration } from "./handleTypeAliasDeclaration";
+import { handleTypeLiteralNode } from "./handleTypeLiteralNode";
 import { handleUnionTypeNode } from "./handleUnionTypeNode";
 
 function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null {
@@ -90,6 +92,10 @@ function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null 
 
     if (isEnumDeclaration(node)) {
         return handleEnumDeclaration(node, args);
+    }
+
+    if (isTypeLiteralNode(node)) {
+        return handleTypeLiteralNode(node, args);
     }
 
     throw new ParserError(node, "Unsure how to handle a node of this kind");
