@@ -39,7 +39,10 @@ const testTypesObject = {
     nonIntegers: testNonIntegers,
     arrays: testArrays,
     objects: testObjects,
-    other: testOther,
+    null: [null],
+    undefined: [undefined],
+    symbols: [Symbol()],
+    nan: [Number.NaN],
 } as const;
 
 export function* testValuesExcept(...keys: (keyof typeof testTypesObject)[]): Generator<unknown> {
@@ -49,7 +52,10 @@ export function* testValuesExcept(...keys: (keyof typeof testTypesObject)[]): Ge
         "nonIntegers",
         "arrays",
         "objects",
-        "other",
+        "null",
+        "undefined",
+        "symbols",
+        "nan",
     ]);
 
     for (const key of keys) {
