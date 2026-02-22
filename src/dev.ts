@@ -84,10 +84,10 @@ const { components, paths }: GeneratorReturn = generate({
 console.log(`Generation Complete after ${Date.now() - startTime}ms`);
 
 writeFileSync(
-    join(__dirname, "test.openapi.json"),
+    join(__dirname, "../", "openapi.json"),
     JSON.stringify(
         {
-            $schema: "../.github/openapi.schema.json",
+            $schema: "../openapi.schema.json",
             openapi: "3.0.3",
             info: {
                 title: "Test Generated Schema",
