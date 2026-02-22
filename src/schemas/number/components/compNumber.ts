@@ -3,6 +3,7 @@ import type { OAS } from "@/OAS";
 import type { SchemaComponent } from "@/schemas/base/SchemaComponent";
 import type { TypeValidationFn, ValueValidationFn } from "@/types/ValidationFns";
 import { getTypeName } from "@/utils/getTypeName";
+import { compInteger } from "./compInteger";
 
 function ensureIsNumber(input: unknown): asserts input is number {
     const type = typeof input;
@@ -18,8 +19,11 @@ function ensureIsValidNumber(input: number): void {
     }
 }
 
-/** Sets the schema `type` field to "number" and validates input types accordingly. */
 export const compNumber: SchemaComponent<number> = {
+    getName(): string {
+        return "type(number)";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.type = "number";
     },
@@ -32,7 +36,11 @@ export const compNumber: SchemaComponent<number> = {
         yield ensureIsValidNumber;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "a number";
+    },
+
+    conflictsWith(other: SchemaComponent<number>): boolean {
+        return other === this || other === compInteger;
     },
 };

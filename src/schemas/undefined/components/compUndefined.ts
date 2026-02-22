@@ -12,11 +12,11 @@ function ensureIsUndefined(input: unknown): asserts input is undefined {
     }
 }
 
-/**
- * Signifies the schema as representing the `undefined` type and validates inputs against
- * `undefined`.
- */
 export const compUndefined: SchemaComponent<undefined> = {
+    getName(): string {
+        return "type(undefined)";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.description ??= "Represents the `undefined` type.";
     },
@@ -25,7 +25,11 @@ export const compUndefined: SchemaComponent<undefined> = {
         yield ensureIsUndefined;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "undefined";
+    },
+
+    conflictsWith(other: SchemaComponent<undefined>): boolean {
+        return other === this;
     },
 };

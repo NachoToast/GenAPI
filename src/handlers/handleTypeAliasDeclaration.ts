@@ -1,17 +1,17 @@
 import type { TypeAliasDeclaration } from "typescript";
-import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import type { AnySchemaObject } from "@/schemas/base/SchemaObject";
 import type { HandlerArgs } from "@/types/HandlerArgs";
 import { handleNode } from "./handleNode";
 
 export function handleTypeAliasDeclaration(
     node: TypeAliasDeclaration,
     args: HandlerArgs,
-): SchemaObject | null {
-    const pointsTo = handleNode(node.type, args);
+): AnySchemaObject | null {
+    const schema = handleNode(node.type, args);
 
-    if (pointsTo === null) {
+    if (schema == null) {
         return null;
     }
 
-    return pointsTo.toIdentified({ node, refDb: args.refDb, identifier: node.name });
+    return schema.toNamed({ node, baseName: node.name.text, schemaDb: args.schemaDb });
 }

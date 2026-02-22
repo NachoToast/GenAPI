@@ -20,10 +20,7 @@ function isRequestMethod(x: string): x is RequestMethod {
 /** Ensures that the given string {@link x} is a spec-conformant HTTP {@link RequestMethod}. */
 export function asRequestMethod(node: Node, x: string): RequestMethod {
     if (!isRequestMethod(x)) {
-        throw new ParserError(
-            node,
-            `Expected value to be a valid HTTP request method, but got "${x}"`,
-        );
+        throw new ParserError(node, `"${x}" is not a valid HTTP request method`);
     }
 
     return x;

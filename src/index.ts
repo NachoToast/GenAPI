@@ -6,19 +6,20 @@ import {
     type Program,
     type TypeNode,
 } from "typescript";
+import { handleNodeLog, handleNodeSilence } from "./core/wrappedHandlers";
 import { ParserError } from "./errors/ParserError";
 import { handleNode } from "./handlers/handleNode";
 import { getReferencedType } from "./helpers/getReferencedType";
 import { getJsDocDescription } from "./jsDoc/getJsDocDescription";
 import { getJsDocTag } from "./jsDoc/getJsDocTag";
 import type { OAS } from "./OAS";
-import type { IdentifiedSchemaObject } from "./schemas/base/IdentifiedSchemaObject";
-import type { SchemaObject } from "./schemas/base/SchemaObject";
+import type { NamedSchemaObject } from "./schemas/base/NamedSchemaObject";
+import type { AnySchemaObject } from "./schemas/base/SchemaObject";
 import type { ResolvedEndpoint } from "./types/Endpoints";
 import type { GeneratorConfig } from "./types/GeneratorConfig";
 import type { GeneratorReturn } from "./types/GeneratorReturn";
 import type { HandlerArgs } from "./types/HandlerArgs";
-import type { ReferenceDatabase } from "./types/ReferenceDatabase";
+import type { SchemaDatabase } from "./types/ReferenceDatabase";
 import type { FinalValidationFn } from "./types/ValidationFns";
 import { getNodeLocation } from "./utils/getNodeLocation";
 
@@ -50,10 +51,10 @@ function findRootType(program: Program, config: GeneratorConfig): Node {
     throw new Error("Unable to find the root type node");
 }
 
-function prepareReferences(refDb: ReferenceDatabase): Record<string, OAS.Schema> {
+function prepareReferences(refDb: SchemaDatabase): Record<string, OAS.Schema> {
     // Clear any schemas that are only referenced once
 
-    const keptSchemas: IdentifiedSchemaObject[] = [];
+    const keptSchemas: NamedSchemaObject<unknown>[] = [];
 
     for (const [key, schema] of refDb.entries()) {
         if (schema.referenceCount < 2) {
@@ -63,18 +64,16 @@ function prepareReferences(refDb: ReferenceDatabase): Record<string, OAS.Schema>
 
     // Set discriminator values to avoid duplicate names.
 
-    const schemasByName = new Map<string, IdentifiedSchemaObject>();
+    const schemasByName = new Map<string, NamedSchemaObject<unknown>>();
 
     for (const schema of keptSchemas) {
-        const name = schema.getBaseName();
-
-        const sameNamed = schemasByName.get(name);
+        const sameNamed = schemasByName.get(schema.baseName);
 
         if (sameNamed !== undefined) {
             schema.discriminator = sameNamed.discriminator + 1;
         }
 
-        schemasByName.set(name, schema);
+        schemasByName.set(schema.baseName, schema);
     }
 
     const output: Record<string, OAS.Schema> = {};
@@ -130,7 +129,11 @@ function getRequestBody(endpoint: ResolvedEndpoint): OAS.RequestBody | null {
 
     return {
         required: true,
-        content: { "application/json": { schema: endpoint.requestBody.toJson() } },
+        content: {
+            "application/json": {
+                schema: endpoint.requestBody.toJson(),
+            },
+        },
     };
 }
 
@@ -191,7 +194,7 @@ function finaliseEndpoints(endpoints: ResolvedEndpoint[]): OAS.Paths {
     return output;
 }
 
-function generateInternal(config: GeneratorConfig): GeneratorReturn {
+export function generate(config: GeneratorConfig): GeneratorReturn {
     const program = makeProgram(config);
 
     const typeChecker = program.getTypeChecker();
@@ -200,9 +203,9 @@ function generateInternal(config: GeneratorConfig): GeneratorReturn {
 
     const endpoints: ResolvedEndpoint[] = [];
 
-    const refDb: ReferenceDatabase = new Map();
+    const refDb: SchemaDatabase = new Map();
 
-    const handlerArgs: HandlerArgs = { refDb, typeChecker };
+    const handlerArgs: HandlerArgs = { schemaDb: refDb, typeChecker };
 
     function isRootType(node: TypeNode | undefined): node is TypeNode {
         if (node === undefined || !isTypeReferenceNode(node)) {
@@ -212,8 +215,22 @@ function generateInternal(config: GeneratorConfig): GeneratorReturn {
         return getReferencedType(node, typeChecker) === rootType;
     }
 
-    function handleUserNode(node: Node | undefined | null): SchemaObject | null {
-        return node ? handleNode(node, handlerArgs) : null;
+    let wrappedHandleNode: (node: Node, args: HandlerArgs) => AnySchemaObject | null;
+
+    switch (config.unsupportedBehaviour) {
+        case "silence":
+            wrappedHandleNode = handleNodeSilence;
+            break;
+        case "log":
+            wrappedHandleNode = handleNodeLog;
+            break;
+        case "error":
+            wrappedHandleNode = handleNode;
+            break;
+    }
+
+    function handleUserNode(node: Node | undefined | null): AnySchemaObject | null {
+        return node ? wrappedHandleNode(node, handlerArgs) : null;
     }
 
     for (const file of program.getSourceFiles()) {
@@ -239,16 +256,4 @@ function generateInternal(config: GeneratorConfig): GeneratorReturn {
         paths: finaliseEndpoints(endpoints),
         components: { schemas },
     };
-}
-
-export function generate(config: GeneratorConfig): GeneratorReturn {
-    try {
-        return generateInternal(config);
-    } catch (error) {
-        if (!(error instanceof ParserError)) {
-            throw error;
-        }
-
-        throw error.makeChild();
-    }
 }

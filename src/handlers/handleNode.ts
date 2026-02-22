@@ -12,8 +12,9 @@ import {
     SyntaxKind,
 } from "typescript";
 import { ParserError } from "@/errors/ParserError";
+import { UnsupportedNodeError } from "@/errors/UnsupportedNodeError";
 import { getReferencedType } from "@/helpers/getReferencedType";
-import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import type { AnySchemaObject, SchemaObject } from "@/schemas/base/SchemaObject";
 import { BooleanKeywordSchema } from "@/schemas/boolean/classes/BooleanKeywordSchema";
 import { BooleanLiteralSchema } from "@/schemas/boolean/classes/BooleanLiteralSchema";
 import { NullKeywordSchema } from "@/schemas/null/classes/NullKeywordSchema";
@@ -30,8 +31,8 @@ import { handleTypeAliasDeclaration } from "./handleTypeAliasDeclaration";
 import { handleTypeLiteralNode } from "./handleTypeLiteralNode";
 import { handleUnionTypeNode } from "./handleUnionTypeNode";
 
-function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null {
-    const asRef = args.refDb.get(node);
+function handleNodeInternal(node: Node, args: HandlerArgs): AnySchemaObject | null {
+    const asRef = args.schemaDb.get(node);
 
     if (asRef !== undefined) {
         asRef.referenceCount++;
@@ -98,7 +99,7 @@ function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null 
         return handleTypeLiteralNode(node, args);
     }
 
-    throw new ParserError(node, "Unsure how to handle a node of this kind");
+    throw new UnsupportedNodeError(node);
 }
 
 /**
@@ -107,19 +108,22 @@ function handleNodeInternal(node: Node, args: HandlerArgs): SchemaObject | null 
  * Note that **all** instantiated schema objects **must** originate from this function so that
  * post-instantiation logic can occur.
  */
-export function handleNode(node: Node, args: HandlerArgs): SchemaObject | null {
-    try {
-        const schemaObject = handleNodeInternal(node, args);
+export function handleNode(node: Node, args: HandlerArgs): AnySchemaObject | null {
+    const schemaObject = handleNodeInternal(node, args);
 
-        schemaObject?.doPostInitActions();
+    if (schemaObject !== null) {
+        try {
+            for (const component of schemaObject.components) {
+                component.postInitActions?.(schemaObject);
+            }
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
 
-        return schemaObject;
-    } catch (error) {
-        if (!(error instanceof ParserError)) {
-            throw error;
+            throw new ParserError(node, error.message);
         }
-
-        console.log(error.makeChild());
-        return null;
     }
+
+    return schemaObject;
 }

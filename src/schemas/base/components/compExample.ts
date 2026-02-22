@@ -6,16 +6,16 @@ import type { OAS } from "@/OAS";
 import type { SchemaComponent } from "../SchemaComponent";
 import type { SchemaObject } from "../SchemaObject";
 
-/**
- * Sets the schema `example` field to the JSDoc **@example** tag on the given node.
- *
- * Also validates the value of the tag against the schema object.
- */
+/** JSDoc **\@example** tag. */
 export class CompExample<T> implements SchemaComponent<T> {
     private readonly example: T;
 
     public constructor(example: T) {
         this.example = example;
+    }
+
+    public getName(): string {
+        return "@example";
     }
 
     public postInitActions(schemaObject: SchemaObject<T>): void {
@@ -37,6 +37,14 @@ export class CompExample<T> implements SchemaComponent<T> {
 
     public doSchemaActions(schema: OAS.Schema): void {
         schema.example = this.example;
+    }
+
+    public conflictsWith(other: SchemaComponent<T>): boolean {
+        return other instanceof CompExample;
+    }
+
+    public tryResolveConflictWith(other: this): CompExample<T> {
+        return other;
     }
 }
 

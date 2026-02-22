@@ -1,6 +1,5 @@
-import { type Identifier, type Node, SyntaxKind } from "typescript";
+import { type Node, SyntaxKind } from "typescript";
 import type { OAS } from "@/OAS";
-import type { ReferenceDatabase } from "@/types/ReferenceDatabase";
 import type {
     AlternateValidationFn,
     FinalValidationFn,
@@ -9,38 +8,26 @@ import type {
 } from "@/types/ValidationFns";
 import { getNodeLocation } from "@/utils/getNodeLocation";
 import { makeFinalValidator, mergeAlternateValidators, mergeValidators } from "@/utils/validation";
-import type { IdentifiedSchemaObject } from "./IdentifiedSchemaObject";
+import { NamedSchemaObject, type NamedSchemaObjectArgs } from "./NamedSchemaObject";
 import type { SchemaComponent } from "./SchemaComponent";
 
-export interface ToIdentifiedArgs {
-    node: Node;
-
-    identifier: Identifier;
-
-    refDb: ReferenceDatabase;
-}
-
 /** Representation of an OpenAPI schema object, generated from an AST node. */
-// biome-ignore lint/suspicious/noExplicitAny: unknown doesn't work here
-export abstract class SchemaObject<T = any> {
-    private static idCounter = 0;
-
+export class SchemaObject<T> {
     public readonly node: Node;
 
-    public readonly components: ReadonlyArray<SchemaComponent<T>>;
+    public readonly components: readonly SchemaComponent<T>[];
 
     private readonly id: number;
 
-    protected constructor(node: Node, ...components: ReadonlyArray<SchemaComponent<T>>) {
+    protected constructor(node: Node, components: readonly SchemaComponent<T>[]) {
         this.node = node;
         this.components = components;
         this.id = SchemaObject.idCounter++;
     }
 
-    public doPostInitActions(): void {
-        for (const component of this.components) {
-            component.postInitActions?.(this);
-        }
+    /** Turns this schema object into its named representation. */
+    public toNamed(args: NamedSchemaObjectArgs): NamedSchemaObject<T> {
+        return new NamedSchemaObject(args, [...this.components]);
     }
 
     public makeValidator(): FinalValidationFn {
@@ -83,8 +70,6 @@ export abstract class SchemaObject<T = any> {
         return this.toSchema();
     }
 
-    public abstract toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<T>;
-
     public toStringShort(): string {
         const parts = this.getShortStringParts().toArray().join(",");
 
@@ -107,9 +92,14 @@ export abstract class SchemaObject<T = any> {
         yield `Source: ${getNodeLocation(this.node)}`;
 
         if (this.components.length > 0) {
-            const compString = this.components.map((x) => x.constructor.name).join(", ");
+            const compString = this.components.map((x) => x.getName()).join(", ");
 
             yield `Components (${this.components.length}): ${compString}`;
         }
     }
+
+    private static idCounter = 0;
 }
+
+// biome-ignore lint/suspicious/noExplicitAny: unknown doesn't work here
+export type AnySchemaObject = SchemaObject<any>;

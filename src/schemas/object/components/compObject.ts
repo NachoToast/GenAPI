@@ -19,8 +19,11 @@ function ensureIsValidObject(input: object): void {
     }
 }
 
-/** Sets the schema `type` field to "object" and validates input types accordingly. */
 export const compObject: SchemaComponent<AnyObject> = {
+    getName(): string {
+        return "type(object)";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.type = "object";
         schema.additionalProperties = false;
@@ -34,7 +37,11 @@ export const compObject: SchemaComponent<AnyObject> = {
         yield ensureIsValidObject;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "an object";
+    },
+
+    conflictsWith(other: SchemaComponent<AnyObject>): boolean {
+        return other === this;
     },
 };

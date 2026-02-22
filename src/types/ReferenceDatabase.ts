@@ -1,5 +1,6 @@
 import type { Node } from "typescript";
-import type { IdentifiedSchemaObject } from "../schemas/base/IdentifiedSchemaObject";
+import type { NamedSchemaObject } from "@/schemas/base/NamedSchemaObject";
 
 /** Tracks references to schema objects for building the `#/components/schemas` JSON. */
-export type ReferenceDatabase = Map<Node, IdentifiedSchemaObject>;
+// biome-ignore lint/suspicious/noExplicitAny: unknown doesn't work here
+export type SchemaDatabase = Map<Node, NamedSchemaObject<any>>;

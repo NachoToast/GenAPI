@@ -12,7 +12,7 @@ import { ParserError } from "@/errors/ParserError";
  */
 export function getAllGenerics(node: TypeReferenceNode): NodeArray<TypeNode> {
     if (node.typeArguments === undefined) {
-        throw new ParserError(node, "Expected typeArguments to be defined");
+        throw new ParserError(node, "No type arguments (generics) found");
     }
 
     return node.typeArguments;

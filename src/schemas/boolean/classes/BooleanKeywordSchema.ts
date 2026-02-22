@@ -1,27 +1,23 @@
 import type { Node } from "typescript";
-import { IdentifiedSchemaObject } from "@/schemas/base/IdentifiedSchemaObject";
-import { SchemaObject, type ToIdentifiedArgs } from "@/schemas/base/SchemaObject";
+import { NamedSchemaObject, type NamedSchemaObjectArgs } from "@/schemas/base/NamedSchemaObject";
+import type { SchemaComponent } from "@/schemas/base/SchemaComponent";
+import { SchemaObject } from "@/schemas/base/SchemaObject";
 import { compBoolean } from "../components/compBoolean";
 import { compBooleanExample } from "../components/compBooleanExample";
 
-class IdentifiedBooleanKeywordSchema extends IdentifiedSchemaObject<boolean> {
-    public constructor(args: ToIdentifiedArgs, previous: IdentifiedBooleanKeywordSchema | null) {
-        const { node } = args;
-
-        super(args, previous, compBoolean, compBooleanExample(node));
-    }
-
-    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<boolean> {
-        return new IdentifiedBooleanKeywordSchema(args, this);
+class NamedBooleanKeywordSchema extends NamedSchemaObject<boolean> {
+    protected override *getExtraComponents(node: Node): Generator<SchemaComponent<boolean> | null> {
+        yield* super.getExtraComponents(node);
+        yield compBooleanExample(node);
     }
 }
 
 export class BooleanKeywordSchema extends SchemaObject<boolean> {
     public constructor(node: Node) {
-        super(node, compBoolean);
+        super(node, [compBoolean]);
     }
 
-    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<boolean> {
-        return new IdentifiedBooleanKeywordSchema(args, null);
+    public override toNamed(args: NamedSchemaObjectArgs): NamedSchemaObject<boolean> {
+        return new NamedBooleanKeywordSchema(args, [...this.components]);
     }
 }

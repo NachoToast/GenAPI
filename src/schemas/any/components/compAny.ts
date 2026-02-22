@@ -4,8 +4,11 @@ import type { TypeValidationFn } from "@/types/ValidationFns";
 
 function alwaysPass(): void {}
 
-/** Signifies the schema as representing the `any` type. */
 export const compAny: SchemaComponent<unknown> = {
+    getName(): string {
+        return "type(any)";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.description ??= "Represents the `any` type.";
     },
@@ -18,7 +21,11 @@ export const compAny: SchemaComponent<unknown> = {
         yield alwaysPass;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "anything";
+    },
+
+    conflictsWith(other: SchemaComponent<unknown>): boolean {
+        return other === this;
     },
 };

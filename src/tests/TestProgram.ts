@@ -1,6 +1,6 @@
 import { createProgram, type Node, type Program } from "typescript";
 import { handleNode } from "@/handlers/handleNode";
-import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import type { AnySchemaObject } from "@/schemas/base/SchemaObject";
 import type { HandlerArgs } from "@/types/HandlerArgs";
 
 export class TestProgram {
@@ -11,7 +11,7 @@ export class TestProgram {
     public constructor(filePath: string) {
         this.program = createProgram({ rootNames: [filePath], options: {} });
 
-        this.args = { refDb: new Map(), typeChecker: this.program.getTypeChecker() };
+        this.args = { schemaDb: new Map(), typeChecker: this.program.getTypeChecker() };
     }
 
     public find<T extends Node>(
@@ -39,7 +39,7 @@ export class TestProgram {
         throw new Error("Unable to find node");
     }
 
-    public handle(node: Node): SchemaObject {
+    public handle(node: Node): AnySchemaObject {
         const result = handleNode(node, this.args);
 
         if (result === null) {
@@ -47,5 +47,9 @@ export class TestProgram {
         }
 
         return result;
+    }
+
+    public clearDb(): void {
+        this.args.schemaDb.clear();
     }
 }

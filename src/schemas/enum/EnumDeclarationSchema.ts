@@ -1,10 +1,12 @@
-import type { EnumMember } from "typescript";
+import type { EnumDeclaration, EnumMember } from "typescript";
 import { getJsDocDescription } from "@/jsDoc/getJsDocDescription";
 import { type CompEnum, compEnum } from "@/schemas/base/components/compEnum";
-import { IdentifiedSchemaObject } from "@/schemas/base/IdentifiedSchemaObject";
-import type { ToIdentifiedArgs } from "@/schemas/base/SchemaObject";
+import type { SchemaDatabase } from "@/types/ReferenceDatabase";
+import { CompDescription } from "../base/components/compDescription";
+import { NamedSchemaObject } from "../base/NamedSchemaObject";
 
-function toStringFn(x: string | number): string {
+/** How to display an enum value in validation messages and the JSON `enum` field. */
+function toStringFnComp(x: string | number): string {
     if (typeof x === "string") {
         return `"${x}"`;
     }
@@ -12,38 +14,42 @@ function toStringFn(x: string | number): string {
     return x.toString();
 }
 
-/**
- * An extended identified schema object with an additional method to add values to the represented
- * node.
- */
-export class EnumDeclarationSchema extends IdentifiedSchemaObject<string | number> {
-    private readonly enum: CompEnum<string | number>;
-
-    public constructor(args: ToIdentifiedArgs, previous: EnumDeclarationSchema | null) {
-        const enumComp = compEnum<string | number>([], toStringFn);
-
-        super(args, previous, enumComp);
-
-        this.enum = enumComp;
+/** How to display an enum value in the JSON `description` field. */
+function toStringFnDescription(x: string | number): string {
+    if (typeof x === "string") {
+        return `"${x}"`;
     }
 
-    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<string | number> {
-        return new EnumDeclarationSchema(args, this);
+    return x.toLocaleString();
+}
+
+export class EnumDeclarationSchema extends NamedSchemaObject<string | number> {
+    private readonly enumComp: CompEnum<string | number>;
+
+    public constructor(node: EnumDeclaration, schemaDb: SchemaDatabase) {
+        const enumComp = compEnum<string | number>([], toStringFnComp);
+
+        super({ node, baseName: node.name.text, schemaDb }, [enumComp]);
+
+        this.enumComp = enumComp;
     }
 
     public addMember(member: EnumMember, value: string | number): void {
-        const subDescription = getJsDocDescription(member);
+        this.enumComp.values.push(value);
 
-        const subName = member.name.getText();
+        const description = getJsDocDescription(member);
 
-        this.enum.addValue(value);
+        const key = member.name.getText();
+        const valueStr = toStringFnDescription(value);
 
-        const valueStr = typeof value === "string" ? `"${value}"` : value.toLocaleString();
+        let text: string;
 
-        if (subDescription !== null) {
-            this.addToDescription(`- **${subName}** = ${valueStr} - ${subDescription}`);
+        if (description !== null) {
+            text = `- **${key}** = ${valueStr} - ${description}`;
         } else {
-            this.addToDescription(`- **${subName}** = ${valueStr}`);
+            text = `- **${key}** = ${valueStr}`;
         }
+
+        this.addComponent(new CompDescription(text));
     }
 }

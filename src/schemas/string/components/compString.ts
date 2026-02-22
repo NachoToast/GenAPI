@@ -12,8 +12,11 @@ function ensureIsString(input: unknown): asserts input is string {
     }
 }
 
-/** Sets the schema `type` field to "string" and validates input types accordingly. */
 export const compString: SchemaComponent<string> = {
+    getName(): string {
+        return "type(string)";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.type = "string";
     },
@@ -22,7 +25,11 @@ export const compString: SchemaComponent<string> = {
         yield ensureIsString;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "a string";
+    },
+
+    conflictsWith(other: SchemaComponent<string>): boolean {
+        return other === this;
     },
 };

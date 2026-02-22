@@ -12,8 +12,11 @@ function ensureIsBoolean(input: unknown): asserts input is boolean {
     }
 }
 
-/** Sets the schema `type` field to "boolean" and validates input types accordingly. */
 export const compBoolean: SchemaComponent<boolean> = {
+    getName(): string {
+        return "type(boolean)";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.type = "boolean";
     },
@@ -22,7 +25,11 @@ export const compBoolean: SchemaComponent<boolean> = {
         yield ensureIsBoolean;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "a boolean";
+    },
+
+    conflictsWith(other: SchemaComponent<boolean>): boolean {
+        return other === this;
     },
 };

@@ -16,15 +16,15 @@ function ensureIsNotShorterThan(min: number): ValueValidationFn<string> {
     };
 }
 
-/**
- * Sets the schema `minLength` field to the JSDoc **@minLength** tag value and validates string
- * inputs against it.
- */
 export class CompMinLength implements SchemaComponent<string> {
     private readonly minLength: number;
 
     public constructor(minLength: number) {
         this.minLength = minLength;
+    }
+
+    public getName(): string {
+        return "@minLength";
     }
 
     public doSchemaActions(schema: OAS.Schema): void {
@@ -35,10 +35,8 @@ export class CompMinLength implements SchemaComponent<string> {
         yield ensureIsNotShorterThan(this.minLength);
     }
 
-    public doCopyFrom(other: SchemaComponent<string>): void {
-        if (other instanceof CompMinLength) {
-            throw new Error("JSDoc minLength tag cannot be defined in multiple places");
-        }
+    public conflictsWith(other: SchemaComponent<string>): boolean {
+        return other instanceof CompMinLength;
     }
 }
 

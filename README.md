@@ -15,11 +15,15 @@ Not to be confused with "GenAI", Gen**API** generates an OpenAPI schema and vali
 - [How It's Done Done Done](#how-its-done-done-done)
 - [Key Features](#key-features)
 - [Supported Types](#supported-types)
-- [Limitations](#limitations)
+- [Design Choices \& Limitations](#design-choices--limitations)
+  - [JSDoc Links](#jsdoc-links)
+  - [Circular References](#circular-references)
+  - [Ease of Configurability](#ease-of-configurability)
+  - [References to References](#references-to-references)
+  - [String Object Keys Only](#string-object-keys-only)
 - [Requirements](#requirements)
 - [See Also](#see-also)
 - [NPM Package](#npm-package)
-- [To Do](#to-do)
 
 ### Overview
 
@@ -85,7 +89,8 @@ Generation is split into 2 stages, **parsing** and **building**.
 
 ### Supported Types
 
-All identified nodes (aliases, interfaces, enums, etc.) support the **@description** JSDoc tag. Identified nodes that reference non-literal types also support the **@example** JSDoc tag.
+- All identified nodes (aliases, interfaces, enums, etc.) support JSDoc descriptions. Identified nodes that reference non-literal types also support the **@example** JSDoc tag.
+- References to already identified nodes only read JSDoc from the child (see [Design Choices & Limitations](#references-to-references)).
 
 <table>
     <tr>
@@ -101,8 +106,8 @@ All identified nodes (aliases, interfaces, enums, etc.) support the **@descripti
         </td>
         <td>
             <ul>
-                <li>@minLength [integer>=1]</li>
-                <li>@maxLength [integer>=0]</li>
+                <li>@minLength integer>=1</li>
+                <li>@maxLength integer>=0</li>
             </ul>
         </td>
         <td></td>
@@ -123,8 +128,8 @@ All identified nodes (aliases, interfaces, enums, etc.) support the **@descripti
         <td>
             <ul>
                 <li>@integer</li>
-                <li>@min [number]</li>
-                <li>@max [number]</li>
+                <li>@min number</li>
+                <li>@max number</li>
             </ul>
         </td>
         <td></td>
@@ -159,7 +164,11 @@ All identified nodes (aliases, interfaces, enums, etc.) support the **@descripti
             <code>any</code>
         </td>
         <td></td>
-        <td>Does not undergo validation.</td>
+        <td>
+            <ul>
+                <li>No input validation.</li>
+            </ul>
+        </td>
     </tr>
     <tr>
         <td>"Unknown" Keyword</td>
@@ -167,7 +176,11 @@ All identified nodes (aliases, interfaces, enums, etc.) support the **@descripti
             <code>unknown</code>
         </td>
         <td></td>
-        <td>Does not undergo validation.</td>
+        <td>
+            <ul>
+                <li>No input validation.</li>
+            </ul>
+        </td>
     </tr>
     <tr>
         <td>"null" Keyword</td>
@@ -199,7 +212,7 @@ All identified nodes (aliases, interfaces, enums, etc.) support the **@descripti
             <code>type SomeType = ...</code>
         </td>
         <td></td>
-        <td>Descriptions on aliases of aliases will be joined using "\n\n", with the "closer" alias being at the bottom.</td>
+        <td></td>
     </tr>
     <tr>
         <td>Interfaces</td>
@@ -207,7 +220,12 @@ All identified nodes (aliases, interfaces, enums, etc.) support the **@descripti
             <code>interface MyInterface {}</code>
         </td>
         <td></td>
-        <td>Only string-like keys are supported. Does not support the @example JSDoc tag.</td>
+        <td>
+            <ul>
+                <li>Only string keys are supported (see <a href="#string-object-keys-only">Design Choices & Limitations</a>).</li>
+                <li>Does not support the **@example** JSDoc tag.</li>
+            </ul>
+        </td>
     </tr>
     <tr>
         <td>Type Literals</td>
@@ -215,32 +233,95 @@ All identified nodes (aliases, interfaces, enums, etc.) support the **@descripti
             <code>type MyType = { foo: string }</code>
         </td>
         <td></td>
-        <td>Same restrictions as interfaces.</td>
+        <td>
+            <ul>
+                <li>Same restrictions as interfaces.</li>
+            </ul>
+        </td>
     </tr>
 </table>
 
-### Limitations
+### Design Choices & Limitations
 
-Non-URL JSDoc links are not converted to references, instead they're just shown in bold:
+Each of these has a corresponding GitHub issue linked, feel free to bump or discuss them there.
+
+#### JSDoc Links
+
+https://github.com/NachoToast/GenAPI/issues/1
+
+JSDoc links are not converted to references, instead they're just shown in bold.
 
 ```ts
 type SomeType = // ...
 
 /** Some description, {@link SomeType} */
 type SomeOtherType = // ...
-// outputs **SomeType**, not #/components/schemas/SomeType
+
+// => Outputs `**SomeType**`, not `#/components/schemas/SomeType`
 ```
 
-Circular references can only be displayed in the schema, attempts to generate validation functions for types with circular references will error:
+#### Circular References
+
+https://github.com/NachoToast/GenAPI/issues/2
+
+Circular references can be displayed in the schema, but not used for input validation.
 
 ```ts
-// fine for response bodies (since those are never validated), but not for anything else
 interface MyInterface {
     someKey: MyInterface;
 }
+
+// => Throws a `ParserError` if `makeValidator()` is called.
 ```
 
+#### Ease of Configurability
+
+https://github.com/NachoToast/GenAPI/issues/3
+
 You need to have at least a basic understand of the TypeScript compiler (namely AST traversal) in order to configure the generator.
+
+#### References to References
+
+https://github.com/NachoToast/GenAPI/issues/4
+
+JSDoc tags are only sourced from a single node, so references to already referenced nodes will ignore the former.
+
+```ts
+/** Some description */
+type SomeType = string | null;
+
+interface MyInterface {
+    /** Some other description */
+    someProperty: SomeType;
+}
+
+// => Outputs "Some description" even in the interface JSON, not "Some other description"
+```
+
+Note this is only for referenced nodes.
+
+```ts
+interface MyInterface {
+    /** Some other description */
+    someProperty: string | null;
+}
+
+// => Outputs "Some other description"
+```
+
+#### String Object Keys Only
+
+https://github.com/NachoToast/GenAPI/issues/6
+
+Interfaces and type literals can only have string keys.
+
+```ts
+interface MyInterface {
+    foo: number; // OK
+
+    12: number; // throws a ParserError
+}
+```
 
 ### Requirements
 
@@ -254,19 +335,3 @@ The only dependency you need is TypeScript. The generator itself was written on 
 ### NPM Package
 
 I haven't been bothered to set an NPM package up for this, but if you really want one I will accept any PR that sets up a deployment workflow for it.
-
-### To Do
-
-- [ ] Interface extension.
-- [ ] Better handling for homogenous unions?
-- [ ] String `format` comp, regexp validation.
-- [ ] Mapped Types
-  - [ ] Namely `Record<K, V>`
-  - [ ] Other types I dislike, e.g. `{ [key: string]: ... }`,
-- [ ] Utility types? Like `Pick`, `Omit`, `Exclude`, etc. Depends how easily the "final" type can be retrieved though.
-- [ ] Arrays
-- [ ] Config hooks for adding security schemes, common responses, etc...
-- [ ] Better config for custom content types.
-- [ ] Enforce `@returns` tag on all endpoints so response description is always spec conformant.
-- [ ] Schema tests.
-- [ ] Examples

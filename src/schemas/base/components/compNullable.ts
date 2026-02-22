@@ -6,8 +6,11 @@ function isNull(input: unknown): input is null {
     return input === null;
 }
 
-/** Sets the schema `nullable` field to true and allows `null` inputs in validation. */
 export const compNullable: SchemaComponent<unknown> = {
+    getName(): string {
+        return "nullable";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.nullable = true;
     },
@@ -16,7 +19,11 @@ export const compNullable: SchemaComponent<unknown> = {
         yield isNull;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "null";
+    },
+
+    conflictsWith(other: SchemaComponent<unknown>): boolean {
+        return other === this;
     },
 };

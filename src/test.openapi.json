@@ -15,8 +15,8 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "description": "A string alias.",
                                     "type": "string",
+                                    "description": "A string alias.",
                                     "example": "678",
                                     "minLength": 3
                                 }
@@ -135,11 +135,11 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "description": "hello world!",
                                 "type": "string",
                                 "enum": [
                                     ""
-                                ]
+                                ],
+                                "description": "hello world!"
                             }
                         }
                     }
@@ -276,7 +276,6 @@
     "components": {
         "schemas": {
             "SharedInterfaceA": {
-                "description": "Description for SharedInterfaceA.",
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
@@ -286,6 +285,7 @@
                 "properties": {
                     "fieldA": {
                         "type": "string",
+                        "description": "desc fieldARef",
                         "nullable": true
                     },
                     "fieldB": {
@@ -308,10 +308,10 @@
                             }
                         ]
                     }
-                }
+                },
+                "description": "Description for SharedInterfaceA."
             },
             "SharedInterfaceB": {
-                "description": "Description for SharedInterfaceB, which is next to **SharedInterfaceA**.",
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
@@ -337,16 +337,17 @@
                     "fieldE": {
                         "$ref": "#/components/schemas/SomeEnum"
                     }
-                }
+                },
+                "description": "Description for SharedInterfaceB, which is next to **SharedInterfaceA**."
             },
             "SomeEnum": {
-                "description": "Description for SomeEnum?\n- **ValueOne** = \"v1\"\n- **ValueTwo** = \"v2\"\n- **ValueThree** = \"v3\" - wow\n- **ValueFour** = 20 - test",
                 "enum": [
                     "v1",
                     "v2",
                     "v3",
                     20
-                ]
+                ],
+                "description": "Description for SomeEnum?\n- **ValueOne** = \"v1\"\n- **ValueTwo** = \"v2\"\n- **ValueThree** = \"v3\" - wow\n- **ValueFour** = 20 - test"
             }
         }
     }

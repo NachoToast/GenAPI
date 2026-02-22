@@ -1,50 +1,44 @@
 import type { Node } from "typescript";
 import { getJsDocTag } from "@/jsDoc/getJsDocTag";
-import { IdentifiedSchemaObject } from "@/schemas/base/IdentifiedSchemaObject";
-import { SchemaObject, type ToIdentifiedArgs } from "@/schemas/base/SchemaObject";
+import { NamedSchemaObject, type NamedSchemaObjectArgs } from "@/schemas/base/NamedSchemaObject";
+import type { SchemaComponent } from "@/schemas/base/SchemaComponent";
+import { SchemaObject } from "@/schemas/base/SchemaObject";
 import { compInteger } from "../components/compInteger";
 import { compMaximum } from "../components/compMaximum";
 import { compMinimum } from "../components/compMinimum";
 import { compNumber } from "../components/compNumber";
+import { compNumberExample } from "../components/compNumberExample";
 
-class IdentifiedNumberKeywordSchema extends IdentifiedSchemaObject<number> {
+class NamedNumberKeywordSchema extends NamedSchemaObject<number> {
     private readonly isInteger: boolean;
 
     public constructor(
-        args: ToIdentifiedArgs,
-        previous: IdentifiedNumberKeywordSchema | null,
+        args: NamedSchemaObjectArgs,
+        components: SchemaComponent<number>[],
         isInteger: boolean,
     ) {
-        const { node } = args;
-
-        super(
-            args,
-            previous,
-            isInteger ? compInteger : compNumber,
-            compMinimum(node, isInteger),
-            compMaximum(node, isInteger),
-        );
-
+        super(args, components);
         this.isInteger = isInteger;
     }
 
-    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<number> {
-        return new IdentifiedNumberKeywordSchema(args, this, this.isInteger);
+    protected override *getExtraComponents(node: Node): Generator<SchemaComponent<number> | null> {
+        yield* super.getExtraComponents(node);
+        yield compNumberExample(node);
+        yield compMinimum(node, this.isInteger);
+        yield compMaximum(node, this.isInteger);
     }
 }
 
 export class NumberKeywordSchema extends SchemaObject<number> {
-    private readonly isInteger: boolean;
-
     public constructor(node: Node) {
-        const isInteger = getJsDocTag(node, "integer", (x) => x.string()) !== null;
-
-        super(node, isInteger ? compInteger : compNumber);
-
-        this.isInteger = isInteger;
+        super(node, [compNumber]);
     }
 
-    public override toIdentified(args: ToIdentifiedArgs): IdentifiedSchemaObject<number> {
-        return new IdentifiedNumberKeywordSchema(args, null, this.isInteger);
+    public override toNamed(args: NamedSchemaObjectArgs): NamedSchemaObject<number> {
+        const isInteger = getJsDocTag(args.node, "integer", (x) => x.string()) !== null;
+
+        const typeComp = isInteger ? compInteger : compNumber;
+
+        return new NamedNumberKeywordSchema(args, [typeComp], isInteger);
     }
 }

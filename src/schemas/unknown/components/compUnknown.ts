@@ -4,8 +4,11 @@ import type { TypeValidationFn } from "@/types/ValidationFns";
 
 function alwaysPass(): void {}
 
-/** Signifies the schema as representing the `unknown` type. */
 export const compUnknown: SchemaComponent<unknown> = {
+    getName(): string {
+        return "type(unknown)";
+    },
+
     doSchemaActions(schema: OAS.Schema): void {
         schema.description ??= "Represents the `unknown` type.";
     },
@@ -17,7 +20,11 @@ export const compUnknown: SchemaComponent<unknown> = {
         yield alwaysPass;
     },
 
-    *getValidationSummary(): Generator<string> {
+    *getTypeValidationSummary(): Generator<string> {
         yield "unknown";
+    },
+
+    conflictsWith(other: SchemaComponent<unknown>): boolean {
+        return other === this;
     },
 };

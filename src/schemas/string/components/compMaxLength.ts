@@ -16,15 +16,15 @@ function ensureIsNotLongerThan(max: number): ValueValidationFn<string> {
     };
 }
 
-/**
- * Sets the schema `maxLength` field to the JSDoc **@maxLength** tag value and validates string
- * inputs against it.
- */
 class CompMaxLength implements SchemaComponent<string> {
     private readonly maxLength: number;
 
     public constructor(maxLength: number) {
         this.maxLength = maxLength;
+    }
+
+    public getName(): string {
+        return "@maxLength";
     }
 
     public doSchemaActions(schema: OAS.Schema): void {
@@ -35,10 +35,8 @@ class CompMaxLength implements SchemaComponent<string> {
         yield ensureIsNotLongerThan(this.maxLength);
     }
 
-    public doCopyFrom(other: SchemaComponent<string>): void {
-        if (other instanceof CompMaxLength) {
-            throw new Error("JSDoc maxLength tag cannot be defined in multiple places");
-        }
+    public conflictsWith(other: SchemaComponent<string>): boolean {
+        return other instanceof CompMaxLength;
     }
 }
 

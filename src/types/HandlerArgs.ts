@@ -1,8 +1,8 @@
 import type { TypeChecker } from "typescript";
-import type { ReferenceDatabase } from "./ReferenceDatabase";
+import type { SchemaDatabase } from "./ReferenceDatabase";
 
 export interface HandlerArgs {
-    refDb: ReferenceDatabase;
+    schemaDb: SchemaDatabase;
 
     typeChecker: TypeChecker;
 }

@@ -14,16 +14,13 @@ export function getReferencedType(node: TypeReferenceNode, typeChecker: TypeChec
     }
 
     if (symbol === undefined) {
-        throw new ParserError(node, "Encountered a TypeReferenceNode with no symbol");
+        throw new ParserError(node, "Encountered a type reference with no symbol");
     }
 
     const firstDeclaration = symbol.declarations?.at(0);
 
     if (firstDeclaration === undefined) {
-        throw new ParserError(
-            node,
-            `Type reference node (symbol ${symbol.getName()}) has no declarations`,
-        );
+        throw new ParserError(node, `Type reference ${symbol.getName()} has no declarations`);
     }
 
     return firstDeclaration;

@@ -1,19 +1,10 @@
 import type { UnionTypeNode } from "typescript";
-import {
-    AnyKeywordSchema,
-    IdentifiedAnyKeywordSchema,
-} from "@/schemas/any/classes/AnyKeywordSchema";
-import type { SchemaObject } from "@/schemas/base/SchemaObject";
-import {
-    IdentifiedNullKeywordSchema,
-    NullKeywordSchema,
-} from "@/schemas/null/classes/NullKeywordSchema";
-import { SimpleNullUnionSchema } from "@/schemas/union/classes/SimpleNullUnionSchema";
-import { UnionTypeNodeSchema } from "@/schemas/union/classes/UnionTypeNodeSchema";
-import {
-    IdentifiedUnknownKeywordSchema,
-    UnknownKeywordSchema,
-} from "@/schemas/unknown/classes/UnknownKeywordSchema";
+import { AnyKeywordSchema } from "@/schemas/any/classes/AnyKeywordSchema";
+import type { AnySchemaObject } from "@/schemas/base/SchemaObject";
+import { NullKeywordSchema } from "@/schemas/null/classes/NullKeywordSchema";
+import { SimpleNullUnionSchema } from "@/schemas/union/SimpleNullUnionSchema";
+import { UnionTypeNodeSchema } from "@/schemas/union/UnionTypeNodeSchema";
+import { UnknownKeywordSchema } from "@/schemas/unknown/classes/UnknownKeywordSchema";
 import type { HandlerArgs } from "@/types/HandlerArgs";
 import { handleNode } from "./handleNode";
 
@@ -25,11 +16,11 @@ import { handleNode } from "./handleNode";
  */
 function handleNullUnion(
     node: UnionTypeNode,
-    a: SchemaObject,
-    b: SchemaObject,
-): SchemaObject | null {
-    const aIsNull = a instanceof NullKeywordSchema || a instanceof IdentifiedNullKeywordSchema;
-    const bIsNull = b instanceof NullKeywordSchema || b instanceof IdentifiedNullKeywordSchema;
+    a: AnySchemaObject,
+    b: AnySchemaObject,
+): AnySchemaObject | null {
+    const aIsNull = a instanceof NullKeywordSchema;
+    const bIsNull = b instanceof NullKeywordSchema;
 
     if (aIsNull === bIsNull) {
         // both are null or neither are null
@@ -43,35 +34,32 @@ function handleNullUnion(
     return new SimpleNullUnionSchema(node, a);
 }
 
-export function handleUnionTypeNode(node: UnionTypeNode, args: HandlerArgs): SchemaObject {
-    const root = new UnionTypeNodeSchema(node);
-
+export function handleUnionTypeNode(
+    node: UnionTypeNode,
+    args: HandlerArgs,
+): AnySchemaObject | null {
     const finalisedNodes = node.types.map((x) => handleNode(x, args)).filter((x) => x !== null);
 
     if (finalisedNodes.length === 0) {
-        return root;
+        return null;
     }
 
     if (finalisedNodes.length === 1) {
         return finalisedNodes[0];
     }
 
-    const indexOfAny = finalisedNodes.findIndex(
-        (x) => x instanceof AnyKeywordSchema || x instanceof IdentifiedAnyKeywordSchema,
-    );
+    const anySchema = finalisedNodes.find((x) => x instanceof AnyKeywordSchema);
 
-    if (indexOfAny !== -1) {
+    if (anySchema !== undefined) {
         // simplify unions with any
-        return finalisedNodes[indexOfAny];
+        return anySchema;
     }
 
-    const indexOfUnknown = finalisedNodes.findIndex(
-        (x) => x instanceof UnknownKeywordSchema || x instanceof IdentifiedUnknownKeywordSchema,
-    );
+    const unknownSchema = finalisedNodes.find((x) => x instanceof UnknownKeywordSchema);
 
-    if (indexOfUnknown !== -1) {
+    if (unknownSchema !== undefined) {
         // simplify unions with unknown
-        return finalisedNodes[indexOfUnknown];
+        return unknownSchema;
     }
 
     if (finalisedNodes.length === 2) {
@@ -83,7 +71,5 @@ export function handleUnionTypeNode(node: UnionTypeNode, args: HandlerArgs): Sch
         }
     }
 
-    root.addSchemas(finalisedNodes);
-
-    return root;
+    return new UnionTypeNodeSchema(node, finalisedNodes);
 }

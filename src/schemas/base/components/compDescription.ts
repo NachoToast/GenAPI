@@ -3,30 +3,29 @@ import { getJsDocDescription } from "@/jsDoc/getJsDocDescription";
 import type { OAS } from "@/OAS";
 import type { SchemaComponent } from "../SchemaComponent";
 
-/** Sets the schema `description` field to the JSDoc comment on the given node. */
 export class CompDescription implements SchemaComponent<unknown> {
-    private readonly description: string[];
+    public readonly description: string[];
 
-    public constructor(description: string) {
-        this.description = [description];
+    public constructor(...description: string[]) {
+        this.description = description;
+    }
+
+    public getName(): string {
+        return "description";
     }
 
     public doSchemaActions(schema: OAS.Schema): void {
-        schema.description = this.description.join("\n");
-    }
-
-    public doCopyFrom(other: SchemaComponent<unknown>): void {
-        if (other instanceof CompDescription && other.description.length > 0) {
-            // double newline between descriptions to help distinguish them
-            this.description.unshift(
-                ...other.description.slice(0, -1),
-                `${other.description.slice(-1)[0]}\n`,
-            );
+        if (this.description.length > 0) {
+            schema.description = this.description.join("\n");
         }
     }
 
-    public addPart(text: string): void {
-        this.description.push(text);
+    public conflictsWith(other: SchemaComponent<unknown>): boolean {
+        return other instanceof CompDescription;
+    }
+
+    public tryResolveConflictWith(other: this): CompDescription {
+        return new CompDescription(...this.description, ...other.description);
     }
 }
 

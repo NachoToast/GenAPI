@@ -1,5 +1,5 @@
 import type { Node } from "typescript";
-import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import type { AnySchemaObject } from "@/schemas/base/SchemaObject";
 import type { RequestMethod } from "./RequestMethod";
 
 interface BaseEndpoint {
@@ -23,11 +23,11 @@ export interface BasicEndpoint extends BaseEndpoint {
 }
 
 export interface ResolvedEndpoint extends BaseEndpoint {
-    requestBody: SchemaObject | null;
+    requestBody: AnySchemaObject | null;
 
-    responseBody: SchemaObject | null;
+    responseBody: AnySchemaObject | null;
 
-    pathParams: SchemaObject | null;
+    pathParams: AnySchemaObject | null;
 
-    queryParams: SchemaObject | null;
+    queryParams: AnySchemaObject | null;
 }

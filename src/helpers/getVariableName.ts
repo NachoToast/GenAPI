@@ -1,5 +1,6 @@
-import { isIdentifier, SyntaxKind, type VariableStatement } from "typescript";
+import { isIdentifier, type VariableStatement } from "typescript";
 import { ParserError } from "@/errors/ParserError";
+import { getFirstDeclaration } from "./getFirstDeclaration";
 
 /**
  * Extracts the name of a {@link VariableStatement}.
@@ -11,23 +12,11 @@ import { ParserError } from "@/errors/ParserError";
  * ```
  */
 export function getVariableName(node: VariableStatement): string {
-    const declaration = node.declarationList.declarations.at(0);
+    const { name } = getFirstDeclaration(node);
 
-    if (declaration === undefined) {
-        throw new ParserError(
-            node.declarationList,
-            "Expected declarationList.declarations[0] to be defined",
-        );
+    if (!isIdentifier(name)) {
+        throw new ParserError(name, "Expected the variable name to be an identifier");
     }
 
-    const identifier = declaration.name;
-
-    if (!isIdentifier(identifier)) {
-        throw new ParserError(
-            identifier,
-            `Expected an Identifier node but got ${SyntaxKind[identifier.kind]}`,
-        );
-    }
-
-    return identifier.escapedText.toString();
+    return name.escapedText.toString();
 }

@@ -1,9 +1,4 @@
-import {
-    isIdentifier,
-    isStringLiteral,
-    type ObjectLiteralExpression,
-    SyntaxKind,
-} from "typescript";
+import { isIdentifier, isStringLiteral, type ObjectLiteralExpression } from "typescript";
 import { ParserError } from "@/errors/ParserError";
 import { enumerateProperties } from "./enumerateProperties";
 
@@ -33,10 +28,7 @@ export function getPropertyValueString(node: ObjectLiteralExpression, key: strin
         const initialiser = expression.initializer;
 
         if (!isStringLiteral(initialiser)) {
-            throw new ParserError(
-                node,
-                `Expected initialiser of key "${key}" to be a StringLiteral node but got ${SyntaxKind[initialiser.kind]}`,
-            );
+            throw new ParserError(initialiser, `Expected a string literal value for key "${key}"`);
         }
 
         return initialiser.text.toString();

@@ -36,15 +36,11 @@ function ensureHasAllRequiredKeys(keys: string[]): ValueValidationFn<AnyObject> 
     };
 }
 
-/**
- * Sets the schema `required` field to the given {@link requiredKeys} and validates object inputs
- * against them.
- */
 export class CompRequired implements SchemaComponent<AnyObject> {
     private readonly requiredKeys: string[] = [];
 
-    public copyToIdentified(): SchemaComponent<AnyObject> {
-        return this;
+    public getName(): string {
+        return "required";
     }
 
     public doSchemaActions(schema: OAS.Schema): void {
@@ -55,6 +51,10 @@ export class CompRequired implements SchemaComponent<AnyObject> {
 
     public *getValueValidators(): Generator<ValueValidationFn<AnyObject>> {
         yield ensureHasAllRequiredKeys(this.requiredKeys);
+    }
+
+    public conflictsWith(other: SchemaComponent<AnyObject>): boolean {
+        return other instanceof CompRequired;
     }
 
     public addKey(key: string): void {

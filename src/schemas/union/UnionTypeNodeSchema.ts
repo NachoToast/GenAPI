@@ -1,5 +1,6 @@
+import type { UnionTypeNode } from "typescript";
 import { ValidationError } from "@/errors/ValidationError";
-import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import type { OAS } from "@/OAS";
 import type {
     AlternateValidationFn,
     FinalValidationFn,
@@ -8,6 +9,8 @@ import type {
 } from "@/types/ValidationFns";
 import { formatList } from "@/utils/formatList";
 import { mergeAlternateValidators, mergeValidators } from "@/utils/validation";
+import { NamedSchemaObject, type NamedSchemaObjectArgs } from "../base/NamedSchemaObject";
+import { type AnySchemaObject, SchemaObject } from "../base/SchemaObject";
 
 interface ValidationPath {
     typeValidator: TypeValidationFn<unknown>;
@@ -48,7 +51,7 @@ function makeFinalValidator(
     };
 }
 
-export function makeUnionValidator(schemas: SchemaObject[]): FinalValidationFn {
+function makeUnionValidator(schemas: AnySchemaObject[]): FinalValidationFn {
     const alternateValidators: AlternateValidationFn[] = [];
     const validationPaths: ValidationPath[] = [];
     const validationSummary: string[] = [];
@@ -70,8 +73,8 @@ export function makeUnionValidator(schemas: SchemaObject[]): FinalValidationFn {
                 alternateValidators.push(...component.getAlternateValidators());
             }
 
-            if (component.getValidationSummary !== undefined) {
-                validationSummary.push(...component.getValidationSummary());
+            if (component.getTypeValidationSummary !== undefined) {
+                validationSummary.push(...component.getTypeValidationSummary());
             }
         }
 
@@ -86,4 +89,70 @@ export function makeUnionValidator(schemas: SchemaObject[]): FinalValidationFn {
     const message = `Expected ${formatList(validationSummary, "or")}`;
 
     return makeFinalValidator(validationPaths, alternateValidator, message);
+}
+
+class IdentifiedUnionTypeNodeSchema extends NamedSchemaObject<unknown> {
+    private readonly schemas: AnySchemaObject[];
+
+    public constructor(args: NamedSchemaObjectArgs, schemas: AnySchemaObject[]) {
+        super(args, []);
+        this.schemas = schemas;
+    }
+
+    public override makeValidator(): FinalValidationFn {
+        return makeUnionValidator(this.schemas);
+    }
+
+    public override toSchema(): OAS.Schema {
+        const output = super.toSchema();
+
+        output.oneOf = this.schemas.map((x) => x.toJson());
+
+        return output;
+    }
+
+    protected override *getShortStringParts(): Generator<string> {
+        yield* super.getShortStringParts();
+        yield `schemas:${this.schemas.length}`;
+    }
+
+    protected override *getLongStringParts(): Generator<string> {
+        yield* super.getLongStringParts();
+        yield `Schemas (${this.schemas.length}): ${this.schemas.map((x) => x.toStringShort()).join(", ")}`;
+    }
+}
+
+export class UnionTypeNodeSchema extends SchemaObject<unknown> {
+    private readonly schemas: AnySchemaObject[];
+
+    public constructor(node: UnionTypeNode, schemas: AnySchemaObject[]) {
+        super(node, []);
+        this.schemas = schemas;
+    }
+
+    public override toNamed(args: NamedSchemaObjectArgs): NamedSchemaObject<unknown> {
+        return new IdentifiedUnionTypeNodeSchema(args, this.schemas);
+    }
+
+    public override makeValidator(): FinalValidationFn {
+        return makeUnionValidator(this.schemas);
+    }
+
+    public override toSchema(): OAS.Schema {
+        const output = super.toSchema();
+
+        output.oneOf = this.schemas.map((x) => x.toJson());
+
+        return output;
+    }
+
+    protected override *getShortStringParts(): Generator<string> {
+        yield* super.getShortStringParts();
+        yield `schemas:${this.schemas.length}`;
+    }
+
+    protected override *getLongStringParts(): Generator<string> {
+        yield* super.getLongStringParts();
+        yield `Schemas (${this.schemas.length}): ${this.schemas.map((x) => x.toStringShort()).join(", ")}`;
+    }
 }

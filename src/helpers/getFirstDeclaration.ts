@@ -14,7 +14,7 @@ export function getFirstDeclaration(node: VariableStatement): VariableDeclaratio
     const first = node.declarationList.declarations.at(0);
 
     if (first === undefined) {
-        throw new ParserError(node, "Expected declarationList.declarations[0] to be defined");
+        throw new ParserError(node.declarationList, "No declarations found");
     }
 
     return first;

@@ -11,13 +11,18 @@ import type { SchemaObject } from "./SchemaObject";
  * JSON schema, validation logic, and more.
  */
 export interface SchemaComponent<T> {
+    readonly disallowCopyingToReferenced?: true;
+
+    /** For debugging and error logging purposes only. */
+    getName(): string;
+
     /**
-     * Additional actions to run once the schema this component is attached to has been fully
-     * initialised.
+     * Additional actions to run once the schema object that this component is attached to has
+     * been fully initialised.
      */
     postInitActions?(schemaObject: SchemaObject<T>): void;
 
-    /** Modifications to the output JSON schema go here. */
+    /** Modifications to the output JSON schema go. */
     doSchemaActions?(schema: OAS.Schema): void;
 
     getTypeValidators?(): Generator<TypeValidationFn<T>>;
@@ -26,8 +31,11 @@ export interface SchemaComponent<T> {
 
     getAlternateValidators?(): Generator<AlternateValidationFn>;
 
-    getValidationSummary?(): Generator<string>;
+    getTypeValidationSummary?(): Generator<string>;
 
-    /** Any mutual exclusion logic should go here. */
-    doCopyFrom?(other: SchemaComponent<T>): void;
+    /** This should, at the very least, return `true` for components that are the same type. */
+    conflictsWith(other: SchemaComponent<T>): boolean;
+
+    /** Custom logic to try resolve conflicts (found via {@link conflictsWith}). */
+    tryResolveConflictWith?(other: this): SchemaComponent<T> | null;
 }

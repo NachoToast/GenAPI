@@ -15,15 +15,15 @@ function ensureIsNotGreaterThan(max: number): ValueValidationFn<number> {
     };
 }
 
-/**
- * Sets the schema `maximum` field to the JSDoc **@max** tag value and validates number inputs
- * against it.
- */
 class CompMaximum implements SchemaComponent<number> {
     private readonly maximum: number;
 
     public constructor(maximum: number) {
         this.maximum = maximum;
+    }
+
+    public getName(): string {
+        return "@max";
     }
 
     public doSchemaActions(schema: OAS.Schema): void {
@@ -34,10 +34,8 @@ class CompMaximum implements SchemaComponent<number> {
         yield ensureIsNotGreaterThan(this.maximum);
     }
 
-    public doCopyFrom(other: SchemaComponent<number>): void {
-        if (other instanceof CompMaximum) {
-            throw new Error("JSDoc max tag cannot be defined in multiple places");
-        }
+    public conflictsWith(other: SchemaComponent<number>): boolean {
+        return other instanceof CompMaximum;
     }
 }
 

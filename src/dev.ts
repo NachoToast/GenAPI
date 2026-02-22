@@ -76,6 +76,7 @@ const startTime: number = Date.now();
 const { components, paths }: GeneratorReturn = generate({
     rootFile: join(__dirname, "..", "examples", "basic", "basicExample.ts"),
     rootTypeFile: join(__dirname, "..", "examples", "basic", "Endpoint.ts"),
+    unsupportedBehaviour: "silence",
     getRootType,
     getEndpoints,
 });

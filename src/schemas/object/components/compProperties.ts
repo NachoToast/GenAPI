@@ -1,7 +1,7 @@
 import { ValidationError } from "@/errors/ValidationError";
 import type { OAS } from "@/OAS";
 import type { SchemaComponent } from "@/schemas/base/SchemaComponent";
-import type { SchemaObject } from "@/schemas/base/SchemaObject";
+import type { AnySchemaObject } from "@/schemas/base/SchemaObject";
 import type { AnyObject } from "@/types/AnyObject";
 import type { ValueValidationFn } from "@/types/ValidationFns";
 
@@ -27,12 +27,14 @@ function ensureIsValidProperty(
     };
 }
 
-/**
- * Sets the schema `properties` field to the given {@link properties} and validates object inputs
- * against them.
- */
 export class CompProperties implements SchemaComponent<AnyObject> {
-    private readonly properties: Record<string, SchemaObject> = {};
+    public readonly disallowCopyingToReferenced = true;
+
+    private readonly properties: Record<string, AnySchemaObject> = {};
+
+    public getName(): string {
+        return "properties";
+    }
 
     public doSchemaActions(schema: OAS.Schema): void {
         if (Object.keys(this.properties).length > 0) {
@@ -52,7 +54,11 @@ export class CompProperties implements SchemaComponent<AnyObject> {
         }
     }
 
-    public addProperty(name: string, schema: SchemaObject): void {
-        this.properties[name] = schema;
+    public conflictsWith(other: SchemaComponent<AnyObject>): boolean {
+        return other instanceof CompProperties;
+    }
+
+    public addProperty(key: string, value: AnySchemaObject): void {
+        this.properties[key] = value;
     }
 }

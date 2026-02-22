@@ -15,15 +15,15 @@ function ensureIsNotLessThan(min: number): ValueValidationFn<number> {
     };
 }
 
-/**
- * Sets the schema `minimum` field to the JSDoc **@min** tag value and validates number inputs
- * against it.
- */
 class CompMinimum implements SchemaComponent<number> {
     private readonly minimum: number;
 
     public constructor(minimum: number) {
         this.minimum = minimum;
+    }
+
+    public getName(): string {
+        return "@min";
     }
 
     public doSchemaActions(schema: OAS.Schema): void {
@@ -34,10 +34,8 @@ class CompMinimum implements SchemaComponent<number> {
         yield ensureIsNotLessThan(this.minimum);
     }
 
-    public doCopyFrom(other: SchemaComponent<number>): void {
-        if (other instanceof CompMinimum) {
-            throw new Error("JSDoc min tag cannot be defined in multiple places");
-        }
+    public conflictsWith(other: SchemaComponent<number>): boolean {
+        return other instanceof CompMinimum;
     }
 }
 

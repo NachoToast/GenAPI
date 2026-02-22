@@ -28,6 +28,18 @@ export interface GeneratorConfig {
     rootTypeFile: string;
 
     /**
+     * How to handle nodes that aren't supported by the generator.
+     *
+     * - `silence` - Unsupported nodes will be omitted entirely, no errors will be logged. Only use
+     * this if you're debugging something else and don't want unrelated errors in your console.
+     * - `log` - Unsupported nodes will be logged to the console, but will not prevent further
+     * generation.
+     * - `error` - Unsupported nodes will be logged to the console and halt the generation process
+     * entirely. **This is the recommended option.**
+     */
+    unsupportedBehaviour: "silence" | "log" | "error";
+
+    /**
      * Function that returns the root type node that endpoints are generated from.
      *
      * Note that this is only called on nodes in the {@link rootTypeFile}.

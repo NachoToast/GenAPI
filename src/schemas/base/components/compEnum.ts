@@ -30,9 +30,9 @@ function ensureIsAnyOf<T>(values: T[], stringFn: StringFn<T>): TypeValidationFn<
     };
 }
 
-/** Sets the schema `enum` field to the given {@link values} and validates inputs against them. */
+/** Predefined constant values, usually from literals. */
 export class CompEnum<T> implements SchemaComponent<T> {
-    private readonly values: T[];
+    public readonly values: T[];
 
     private readonly stringFn: StringFn<T>;
 
@@ -41,8 +41,8 @@ export class CompEnum<T> implements SchemaComponent<T> {
         this.stringFn = stringFn;
     }
 
-    public copyToIdentified(): SchemaComponent<T> {
-        return this;
+    public getName(): string {
+        return "enum";
     }
 
     public doSchemaActions(schema: OAS.Schema): void {
@@ -57,12 +57,12 @@ export class CompEnum<T> implements SchemaComponent<T> {
         }
     }
 
-    public *getValidationSummary(): Generator<string> {
+    public *getTypeValidationSummary(): Generator<string> {
         yield* this.values.map((x) => this.stringFn(x));
     }
 
-    public addValue(value: T): void {
-        this.values.push(value);
+    public conflictsWith(other: SchemaComponent<T>): boolean {
+        return other instanceof CompEnum;
     }
 }
 
